@@ -1,204 +1,379 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UTK AI Demo — Local Test</title>
-  <style>
-    :root{ --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#00d4ff; --glass: rgba(255,255,255,0.03) }
-    body{ margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(180deg,#071028 0%, #061126 100%); color:#e6eef8; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;}
-    .card{ width:100%; max-width:920px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border-radius:14px; padding:22px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); border:1px solid rgba(255,255,255,0.03); }
-    h1{ margin:0 0 6px 0; font-size:20px; letter-spacing:0.2px; }
-    p.lead{ margin:0 0 16px 0; color:var(--muted); font-size:13px; }
-    .row{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    input[type="text"], textarea, select{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.02); color:inherit; font-size:14px; outline:none; }
-    textarea{ min-height:110px; resize:vertical; }
-    .controls{ display:flex; gap:10px; }
-    button{ background:linear-gradient(90deg,var(--accent), #00ffa3); color:#002; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow: 0 6px 20px rgba(0,212,255,0.08); }
-    button.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04); box-shadow:none; }
-    .responseBox{ margin-top:14px; background:var(--glass); padding:14px; border-radius:10px; min-height:140px; color:#dbeafe; font-size:14px; white-space:pre-wrap; overflow:auto; border:1px solid rgba(255,255,255,0.02); }
-    .meta{ font-size:12px; color:var(--muted); margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .badge{ padding:6px 8px; background:rgba(255,255,255,0.02); border-radius:8px; font-size:12px; color:var(--muted); }
-    .small{ font-size:13px; color:var(--muted); }
-    .modeSelect{ width:170px; }
-    .topRow{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    @media(max-width:720px){ .topRow{ flex-direction:column; align-items:stretch } .modeSelect{ width:100% } }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>UtkForce AI Chatbot</title>
+    <style>
+        /* CSS Styling: Modern Dark Theme */
+        :root {
+            --bg: #071028;
+            --card: #0b1220;
+            --muted: #94a3b8;
+            --accent: #00d4ff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --ai-color: #00d4ff;
+            --user-color: #6366f1;
+        }
+        body {
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, var(--bg) 0%, #061126 100%);
+            color: #e6eef8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 720px;
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        #chatWindow {
+            height: 60vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .user .bubble {
+            background-color: var(--user-color);
+            color: white;
+            border-radius: 15px 15px 0 15px;
+            margin-left: auto;
+            text-align: right;
+        }
+        .ai .bubble {
+            background-color: var(--ai-color);
+            color: #002;
+            border-radius: 15px 15px 15px 0;
+            margin-right: auto;
+        }
+        .bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .message-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #inputArea {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        #promptInput {
+            flex-grow: 1;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: inherit;
+            font-size: 15px;
+            outline: none;
+            min-height: 48px;
+            resize: none;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--accent);
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        #sendBtn {
+            background: var(--accent);
+            color: #002;
+            border-radius: 50%;
+        }
+        #sendBtn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+        }
+        #imagePreviewContainer {
+            margin-top: 10px;
+            display: none;
+            padding: 10px;
+            border: 1px dashed var(--muted);
+            border-radius: 8px;
+            align-items: center;
+            gap: 10px;
+            max-width: 250px;
+        }
+        #imagePreview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 6px;
+        }
+        #removeImageBtn {
+            font-size: 12px;
+            padding: 5px 10px;
+            height: auto;
+            width: auto;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+        }
+        .loading-dot {
+            height: 10px;
+            width: 10px;
+            background-color: var(--ai-color);
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+            margin: 0 2px;
+        }
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        .footer-text {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-  <div class="card">
-    <h1>UTK AI Demo — Local Test</h1>
-    <p class="lead">इसी UI से बाद में backend जोड़कर ChatGPT + Blackbox दोनों से response लाकर merge कर पाएँगे। अभी यह demo random realistic replies दिखाता है।</p>
-
-    <div class="topRow">
-      <input id="promptInput" type="text" placeholder="अपने सवाल/प्रॉम्प्ट यहाँ लिखो — उदाहरण: 'एक सरल Python chatbot बनाओ'">
-      <select id="mode" class="modeSelect">
-        <option value="chatgpt">ChatGPT Mode (explain)</option>
-        <option value="blackbox">Blackbox Mode (code)</option>
-        <option value="combined" selected>Combined Mode</option>
-      </select>
-      <div style="display:flex; gap:8px;">
-        <button id="askBtn">Ask</button>
-        <button id="clearBtn" class="ghost">Clear</button>
-      </div>
-    </div>
-
-    <div style="display:flex; gap:12px; flex-wrap:wrap;">
-      <textarea id="promptArea" placeholder="या यहाँ लंबा प्रॉम्प्ट लिखो... (optional)"></textarea>
-      <div style="width:260px; min-width:240px;">
-        <div style="margin-bottom:10px;">
-          <label class="small">Random seed?</label>
-          <input id="seed" type="text" placeholder="Optional number or text">
+    <div class="container">
+        <h1>UtkForce AI</h1>
+        <div id="chatWindow">
+            <div class="message ai">
+                <div class="bubble">नमस्ते, मैं UtkForce AI हूँ। मैं आपकी कैसे मदद कर सकता हूँ?</div>
+            </div>
         </div>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <button id="typingBtn" class="ghost">Typing Effect: ON</button>
-          <button id="copyBtn" class="ghost">Copy Reply</button>
-        </div>
-        <div class="meta">
-          <div class="badge" id="status">Status: Idle</div>
-          <div class="small">Local Demo</div>
-        </div>
-      </div>
-    </div>
 
-    <div class="responseBox" id="responseBox">AI response will appear here...</div>
+        <div id="imagePreviewContainer">
+            <img id="imagePreview" alt="Attached Image">
+            <button id="removeImageBtn">हटाएँ</button>
+        </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:12px; flex-wrap:wrap;">
-      <div class="small">Demo for testing. Backend later: <strong>/api/ask</strong></div>
-      <div class="small">Developed for: Utkarsh</div>
+        <div id="inputArea">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            
+            <button class="icon-btn" id="attachImageBtn" title="चित्र संलग्न करें">🖼️</button>
+            <textarea id="promptInput" placeholder="अपना सवाल यहाँ लिखें..." rows="1"></textarea>
+            <button class="icon-btn" id="sendBtn" disabled title="भेजें">➤</button>
+        </div>
+        <div class="footer-text">
+            Developed by Utkarsh Maurya - Secure Backend via Render.
+        </div>
     </div>
-  </div>
 
 <script>
 (function(){
-  const chatReplies = [
-    "यह एक अच्छा सवाल है। पहले हम समस्या को छोटे हिस्सों में बाँटते हैं।",
-    "सटीक समाधान के लिए मुझे थोड़ा context दो: यह किस environment में चलेगा?",
-    "Algorithm idea: input → preprocess → model → postprocess. इसे step-by-step implement करें।",
-    "Short explanation: यह function user-input लेंगा, validation करेगा और फिर output देगा।",
-    "Performance tip: loops के बजाय vectorized operations उपयोग करो जहाँ संभव हो।",
-    "Ready: मैं code + comments दे सकता हूँ। बताओ किस language में चाहिए।"
-  ];
+    // --- Backend API Endpoint (इसे Render deployment के बाद बदलना होगा) ---
+    const API_ENDPOINT = 'YOUR_DEPLOYED_BACKEND_URL/api/generate'; 
 
-  const blackReplies = [
-    "```python\n# Example: simple HTTP server\nfrom http.server import SimpleHTTPRequestHandler, HTTPServer\n\nclass Handler(SimpleHTTPRequestHandler):\n    pass\n\nHTTPServer(('0.0.0.0', 8080), Handler).serve_forever()\n```",
-    "```js\n// Example: throttle function\nfunction throttle(fn, wait){\n  let last=0; return function(...args){\n    const now = Date.now();\n    if(now - last >= wait){ last = now; fn.apply(this,args); }\n  }\n}\n```",
-    "```bash\n# Run tests\npytest -q tests/\n```",
-    "def compute(x):\n    # simple optimized loop\n    s = 0\n    for i in range(len(x)):\n        s += x[i]\n    return s",
-    "# Tip: add unit tests and linting (flake8 / eslint) before merging to main"
-  ];
+    // --- DOM Elements ---
+    const chatWindow = document.getElementById('chatWindow');
+    const promptInput = document.getElementById('promptInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const attachImageBtn = document.getElementById('attachImageBtn');
+    const imageInput = document.getElementById('imageInput');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImageBtn');
 
-  const combinedReplies = [
-    "Blackbox ने code दिया और ChatGPT ने line-by-line explanation दी। नीचे code देखो और explanation के लिए 'Explain' दबाओ।",
-    "Recommended: use the Python snippet (safe) and test in sandbox. Explanation: इस function में input validated है और errors handled हैं।",
-    "Merged result: Code + Short guide.\n\nSteps:\n1) Copy code\n2) Run tests\n3) Optimize if needed"
-  ];
+    let isLoading = false;
+    let attachedImage = null; // Stores { base64: string, mimeType: string }
 
-  const statusEl = document.getElementById('status');
-  const responseBox = document.getElementById('responseBox');
-  const promptInput = document.getElementById('promptInput');
-  const promptArea = document.getElementById('promptArea');
-  const modeEl = document.getElementById('mode');
-  const askBtn = document.getElementById('askBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const typingBtn = document.getElementById('typingBtn');
-  let typingOn = true;
+    // --- Helper Functions ---
 
-  typingBtn.addEventListener('click', ()=> {
-    typingOn = !typingOn;
-    typingBtn.innerText = 'Typing Effect: ' + (typingOn ? 'ON' : 'OFF');
-  });
-
-  function seedRandom(seed){
-    // simple seeded random for reproducibility
-    let h = 2166136261 >>> 0;
-    for(let i=0;i<seed.length;i++){
-      h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+    function setLoading(loading) {
+        isLoading = loading;
+        promptInput.disabled = loading;
+        sendBtn.disabled = loading || promptInput.value.trim() === '';
+        attachImageBtn.disabled = loading;
     }
-    return function(){ h += 0x6D2B79F5; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  }
 
-  function chooseRandom(arr, seedFunc){
-    if(seedFunc){
-      const idx = Math.floor(seedFunc() * arr.length);
-      return arr[idx];
+    function createMessageBubble(text, sender, isImage = false, imageSource = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'bubble';
+        
+        // Handle markdown (basic)
+        const formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+            .replace(/`(.*?)`/g, '<code>$1</code>'); // Inline Code
+            
+        bubbleDiv.innerHTML = formattedText; // Use innerHTML to parse basic formatting
+        
+        if (isImage && imageSource) {
+            const img = document.createElement('img');
+            img.src = imageSource;
+            img.className = 'message-image';
+            bubbleDiv.prepend(img);
+        }
+
+        messageDiv.appendChild(bubbleDiv);
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
     }
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
 
-  function typeWrite(text, el, cb){
-    el.innerText = "";
-    if(!typingOn){ el.innerText = text; if(cb) cb(); return; }
-    let i = 0;
-    const speed = 18; // ms per char
-    const timer = setInterval(()=> {
-      i++;
-      el.innerText = text.substring(0,i);
-      if(i >= text.length){
-        clearInterval(timer);
-        if(cb) cb();
-      }
-    }, speed);
-  }
-
-  askBtn.addEventListener('click', ()=> {
-    const prompt = (promptArea.value || promptInput.value || "").trim();
-    if(!prompt){
-      responseBox.innerText = "कृपया prompt डालें।";
-      return;
+    function displayError(message) {
+        createMessageBubble(`❌ त्रुटि: ${message}`, 'ai');
     }
-    const seedText = document.getElementById('seed').value || "";
-    const seedFunc = seedText ? seedRandom(seedText) : null;
-    const mode = modeEl.value;
 
-    statusEl.innerText = "Status: Thinking...";
-    const start = Date.now();
+    // --- Image Handling ---
 
-    // simulate network + model time
-    setTimeout(()=> {
-      let reply = "";
-      if(mode === 'chatgpt'){
-        reply = chooseRandom(chatReplies, seedFunc);
-      } else if(mode === 'blackbox'){
-        reply = chooseRandom(blackReplies, seedFunc);
-      } else {
-        // combined: mix
-        const b = chooseRandom(blackReplies, seedFunc);
-        const c = chooseRandom(combinedReplies, seedFunc);
-        const e = chooseRandom(chatReplies, seedFunc);
-        reply = c + "\n\n---\n" + b + "\n\nExplanation:\n" + e;
-      }
-
-      typeWrite("🟦 Input: " + prompt + "\n\n🟩 AI Reply:\n" + reply, responseBox, ()=>{
-        const dt = (Date.now()-start);
-        statusEl.innerText = "Status: Ready • " + dt + "ms";
-      });
-
-    }, 600 + Math.floor(Math.random()*700));
-  });
-
-  clearBtn.addEventListener('click', ()=> {
-    promptInput.value = "";
-    promptArea.value = "";
-    responseBox.innerText = "AI response will appear here...";
-    statusEl.innerText = "Status: Idle";
-  });
-
-  copyBtn.addEventListener('click', ()=> {
-    const text = responseBox.innerText;
-    navigator.clipboard.writeText(text).then(()=> {
-      statusEl.innerText = "Status: Copied to clipboard";
-      setTimeout(()=> statusEl.innerText = "Status: Ready", 1100);
-    }).catch(()=> {
-      statusEl.innerText = "Status: Copy failed";
+    attachImageBtn.addEventListener('click', () => {
+        imageInput.click();
     });
-  });
 
-  // allow enter to ask
-  promptInput.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){ askBtn.click(); e.preventDefault(); }
-  });
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64String = e.target.result.split(',')[1];
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'flex';
+                attachedImage = {
+                    base64: base64String,
+                    mimeType: file.type
+                };
+                promptInput.focus();
+                sendBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    removeImageBtn.addEventListener('click', () => {
+        imagePreviewContainer.style.display = 'none';
+        imagePreview.src = '';
+        imageInput.value = '';
+        attachedImage = null;
+        if (!promptInput.value.trim()) {
+             sendBtn.disabled = true;
+        }
+    });
+
+    // --- Core Response Logic ---
+
+    async function generateResponse() {
+        if (isLoading) return;
+
+        const userQuery = promptInput.value.trim();
+        if (!userQuery && !attachedImage) return;
+
+        // 1. यूज़र का मैसेज डिस्प्ले करें
+        let displayedQuery = userQuery;
+        let imageSource = null;
+        if (attachedImage) {
+            displayedQuery = userQuery ? `${userQuery}\n\n[संलग्न चित्र]` : `[संलग्न चित्र]`;
+            imageSource = imagePreview.src;
+        }
+        createMessageBubble(displayedQuery, 'user', !!attachedImage, imageSource);
+        
+        // इनपुट फील्ड साफ़ करें और इमेज हटाएँ
+        promptInput.value = '';
+        removeImageBtn.click(); 
+        
+        setLoading(true);
+
+        // AI लोडिंग बबल
+        const loadingBubble = document.createElement('div');
+        loadingBubble.className = 'message ai';
+        loadingBubble.innerHTML = `<div class="bubble"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>`;
+        chatWindow.appendChild(loadingBubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        try {
+            const payload = {
+                userQuery: userQuery,
+                base64Image: attachedImage ? attachedImage.base64 : null,
+                mimeType: attachedImage ? attachedImage.mimeType : null
+            };
+            
+            // 2. सुरक्षित Python Backend API को कॉल करें
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(errorBody.detail || `अनुरोध विफल हुआ: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const aiResponseText = result.response || "AI जवाब जेनरेट करने में विफल रहा।";
+            
+            // लोडिंग बबल को हटाएँ
+            chatWindow.removeChild(loadingBubble);
+
+            // AI जवाब डिस्प्ले करें
+            createMessageBubble(aiResponseText, 'ai');
+
+        } catch (error) {
+            console.error("Backend/API error:", error);
+            // लोडिंग बबल को हटाएँ और एरर दिखाएँ
+            chatWindow.removeChild(loadingBubble);
+            displayError(`अनुरोध विफल हुआ। क्या Backend Live है? Error: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // --- Event Listeners ---
+
+    promptInput.addEventListener('input', () => {
+        const query = promptInput.value.trim();
+        sendBtn.disabled = !(query || attachedImage);
+        
+        // Textarea height adjustment
+        promptInput.style.height = 'auto';
+        promptInput.style.height = promptInput.scrollHeight + 'px';
+    });
+
+    sendBtn.addEventListener('click', generateResponse);
+
+    // Enter Key to Send
+    promptInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            generateResponse();
+        }
+    });
 
 })();
 </script>
