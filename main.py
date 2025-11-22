@@ -26,8 +26,8 @@ app.add_middleware(
 )
 
 
-# --- Gemini Client सेटअप ---
-API_KEY = os.environ.get("GEMINI_API_KEY")
+# --- Gemini Client सेटअप 
+API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 
 try:
     client = genai.Client(api_key=API_KEY) if API_KEY else None
