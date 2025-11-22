@@ -10,29 +10,30 @@ from google.genai import types
 # --- FastAPI App और CORS सेटअप ---
 app = FastAPI()
 
-# CORS Setup: 'https://utkarshexperiment4-sys.github.io' को आपके डोमेन से बदलें
-origins = [
-    "https://utkarshexperiment4-sys.github.io", 
-    "https://utkarshexperiment4-sys.github.io/UTKFORCEAI/",  # <-- यह नया है
-    "http://localhost:8000",
-]
-
+# CORS Fix: सभी स्रोतों से कनेक्शन की अनुमति देता है
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"], # <--- FIX: यह सभी डोमेन से कनेक्शन की अनुमति देता है
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# --- Gemini Client सेटअप 
-API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+# --- Gemini Client सेटअप ---
+# FIX: .strip() जोड़ें ताकि Render से लोड होने वाली Key में कोई वाइटस्पेस न हो
+API_KEY = os.environ.get("GEMINI_API_KEY", "").strip() 
 
-try:
-    client = genai.Client(api_key=API_KEY) if API_KEY else None
-except Exception:
-    client = None
+# Client को try/except के साथ शुरू करें
+client = None
+if API_KEY:
+    try:
+        # अगर API_KEY खाली नहीं है, तो क्लाइंट शुरू करें
+        client = genai.Client(api_key=API_KEY)
+    except Exception as e:
+        # अगर क्लाइंट शुरू करने में कोई Exception आती है, तो उसे यहाँ पकड़ें
+        print(f"FATAL ERROR: Could not initialize Gemini Client: {e}")
+        client = None
 
 # --- रिक्वेस्ट स्कीमा ---
 class ChatRequest(BaseModel):
@@ -40,15 +41,17 @@ class ChatRequest(BaseModel):
     base64Image: str | None = None
     mimeType: str | None = None
 
-# --- API Endpoint (यही वह जगह है जहाँ आपने दिया गया कोड जाएगा) ---
+# --- API Endpoint ---
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
     if not client:
-        raise HTTPException(status_code=500, detail="AI Client शुरू नहीं हो सका, लेकिन Key मौजूद है।।")
-
-    # **********************************************
-    # *** आपने दिया गया कोड यहाँ से शुरू होता है ***
-    # **********************************************
+        # DEBUGGING: अगर क्लाइंट शुरू नहीं हुआ है, तो स्पष्ट एरर दें
+        if not API_KEY:
+            detail_msg = "API_KEY नहीं मिला। Render Environment Variables चेक करें।"
+        else:
+            detail_msg = "AI Client शुरू नहीं हो सका, लेकिन Key मौजूद है। (Render Logs चेक करें)"
+            
+        raise HTTPException(status_code=500, detail=detail_msg)
 
     system_prompt = (
         f"आप UtkForce AI हैं, जो Utkarsh Maurya द्वारा निर्मित एक अत्यंत सहायक, जानकार और विनम्र AI सहायक है। "
@@ -73,6 +76,7 @@ async def generate_response_api(request: ChatRequest):
         raise HTTPException(status_code=400, detail="कोई सवाल या चित्र प्रदान नहीं किया गया।")
 
     try:
+        # Google Search Tool के साथ API कॉल
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=parts,
@@ -85,13 +89,10 @@ async def generate_response_api(request: ChatRequest):
         return {"response": response.text}
 
     except Exception as e:
+        # API कॉल फेल होने पर एरर
         raise HTTPException(status_code=500, detail=f"AI जवाब जेनरेट करने में त्रुटि: {e}")
 
-    # **********************************************
-    # *** आपने दिया गया कोड यहाँ समाप्त होता है ***
-    # **********************************************
-
-# --- हेल्थ चेक रूट (ज़रूरी नहीं, पर अच्छा है) ---
+# --- हेल्थ चेक रूट ---
 @app.get("/")
 def read_root():
     return {"status": "AI Backend चल रहा है।"}
