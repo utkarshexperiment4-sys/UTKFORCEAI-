@@ -44,7 +44,7 @@ class ChatRequest(BaseModel):
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
     if not client:
-        raise HTTPException(status_code=500, detail="AI सेवा शुरू नहीं हुई।")
+        raise HTTPException(status_code=500, detail="AI Client शुरू नहीं हो सका, लेकिन Key मौजूद है।।")
 
     # **********************************************
     # *** आपने दिया गया कोड यहाँ से शुरू होता है ***
