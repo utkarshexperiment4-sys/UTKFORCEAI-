@@ -13,7 +13,7 @@ app = FastAPI()
 # CORS Setup: 'https://utkarshexperiment4-sys.github.io' को आपके डोमेन से बदलें
 origins = [
     "https://utkarshexperiment4-sys.github.io", 
-    "https://utkarshexperiment4-sys.github.io/UTKFORCEAI",  # <-- यह नया है
+    "https://utkarshexperiment4-sys.github.io/UTKFORCEAI/",  # <-- यह नया है
     "http://localhost:8000",
 ]
 
