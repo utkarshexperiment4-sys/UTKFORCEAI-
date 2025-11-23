@@ -2,193 +2,151 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>UtkForce Ultimate 3D</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
     <style>
-        /* --- 1. Background with Deep Ocean Gradient --- */
-        body {
+        /* --- RESET FULLSCREEN (MOST IMPORTANT FIX) --- */
+        html, body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+            background: #000;
+        }
+
+        /* --- Background Gradient --- */
+        body {
             font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(180deg, #020024 0%, #090979 35%, #00d4ff 100%);
-            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            perspective: 1000px; /* Essential for 3D effect */
+            position: relative;
+            perspective: 900px;
         }
 
-        /* --- 2. Animated Ocean Waves at Bottom --- */
+        /* --- Ocean Waves --- */
         .ocean {
-            height: 5%;
+            height: 7%;
             width: 100%;
             position: absolute;
             bottom: 0;
             left: 0;
             background: #015871;
-            z-index: 1;
         }
         .wave {
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198'%3E%3Cpath fill='%23ffffff' d='M1600 120L1400 60c-200-60-600-60-800 0S0 120 0 120V0h1600z' opacity='.5'/%3E%3Cpath fill='%23ffffff' d='M1600 90L1400 30C1200-30 800-30 600 30S0 90 0 90V0h1600z'/%3E%3C/svg%3E") repeat-x; 
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198'%3E%3Cpath fill='%23ffffff' d='M1600 120L1400 60c-200-60-600-60-800 0S0 120 0 120V0h1600z' opacity='.5'/%3E%3Cpath fill='%23ffffff' d='M1600 90L1400 30C1200-30 800-30 600 30S0 90 0 90V0h1600z'/%3E%3C/svg%3E")
+                repeat-x;
             position: absolute;
             top: -100px;
             width: 6400px;
             height: 100px;
-            animation: wave 7s cubic-bezier( 0.36, 0.45, 0.63, 0.53) infinite;
-            transform: translate3d(0, 0, 0);
+            animation: wave 7s linear infinite;
             opacity: 0.6;
         }
-        .wave:nth-of-type(2) {
-            top: -75px;
-            animation: wave 9s cubic-bezier( 0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
-            opacity: 1;
-        }
-
         @keyframes wave {
             0% { margin-left: 0; }
             100% { margin-left: -1600px; }
         }
-        @keyframes swell {
-            0%, 100% { transform: translate3d(0,-25px,0); }
-            50% { transform: translate3d(0,5px,0); }
-        }
 
-        /* --- 3. The 3D Tilt Card (Magic Happens Here) --- */
+        /* --- 3D CHAT CARD FIXED CENTER --- */
         .chat-card {
-            width: 100%;
-            max-width: 400px;
-            height: 85vh;
-            background: rgba(255, 255, 255, 0.1);
+            width: 92%;
+            max-width: 420px;
+            height: 88%;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            /* Deep 3D Shadows */
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.5),
-                inset 0 0 30px rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(18px);
+
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
             display: flex;
             flex-direction: column;
-            position: relative;
             z-index: 10;
-            transition: transform 0.1s; /* Smooth movement */
-            transform-style: preserve-3d;
-        }
-
-        /* Shine Effect moving across card */
-        .chat-card::after {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
-            transform: skewX(-25deg);
-            animation: shine 6s infinite;
-            pointer-events: none;
-        }
-        @keyframes shine {
-            0% { left: -100%; }
-            20% { left: 200%; }
-            100% { left: 200%; }
         }
 
         /* --- Header --- */
         .header {
-            padding: 20px;
+            padding: 15px;
+            text-align: center;
+            color: white;
             background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
-            color: white;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            transform: translateZ(20px); /* 3D Pop out text */
         }
-        .title { font-size: 1.4em; font-weight: bold; text-shadow: 0 2px 10px rgba(0,212,255,0.8); }
-        .subtitle { font-size: 0.8em; opacity: 0.8; margin-top: 5px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+        .title { font-size: 1.3em; font-weight: bold; }
+        .subtitle { font-size: 0.9em; opacity: .8; }
 
-        /* --- Chat Area --- */
+        /* --- Messages --- */
         .messages {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            transform: translateZ(10px); /* Inner 3D depth */
+            gap: 10px;
         }
-        .messages::-webkit-scrollbar { width: 4px; }
-        .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
-
         .msg {
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 1em;
             max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 15px;
-            font-size: 0.95em;
-            line-height: 1.4;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         .ai {
+            background: rgba(255,255,255,0.85);
             align-self: flex-start;
-            background: rgba(255, 255, 255, 0.85);
-            color: #333;
-            border-bottom-left-radius: 2px;
         }
         .user {
-            align-self: flex-end;
             background: linear-gradient(135deg, #00c6ff, #0072ff);
+            align-self: flex-end;
             color: white;
-            border-bottom-right-radius: 2px;
         }
 
         /* --- Input Area --- */
         .input-area {
-            padding: 20px;
+            padding: 15px;
             background: rgba(0, 0, 0, 0.2);
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
             display: flex;
-            align-items: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            transform: translateZ(20px); /* 3D Pop out */
+            gap: 10px;
         }
         .txt-box {
             flex: 1;
-            padding: 12px 15px;
+            padding: 12px;
             border-radius: 30px;
             border: none;
-            background: rgba(255, 255, 255, 0.9);
-            margin-right: 10px;
             outline: none;
-            transition: 0.3s;
+            font-size: 1em;
         }
-        .txt-box:focus { box-shadow: 0 0 15px #00d4ff; }
-        
         .send-btn {
-            background: #00d4ff;
+            width: 45px;
+            height: 45px;
             border: none;
-            width: 45px; height: 45px;
             border-radius: 50%;
+            background: #00d4ff;
             color: white;
-            cursor: pointer;
-            box-shadow: 0 0 20px #00d4ff;
-            display: flex; justify-content: center; align-items: center;
-            transition: 0.2s;
+            font-size: 20px;
         }
-        .send-btn:active { transform: scale(0.9); }
-
     </style>
 </head>
+
 <body>
 
     <div class="ocean">
         <div class="wave"></div>
-        <div class="wave"></div>
     </div>
 
-    <div class="chat-card" id="tiltCard">
+    <div class="chat-card">
         <div class="header">
             <div class="title">Mukta AI + UtkForce</div>
             <div class="subtitle">निर्माता: Utkarsh Maurya</div>
@@ -196,64 +154,29 @@
 
         <div class="messages" id="chatBox">
             <div class="msg ai">
-                नमस्ते! मैं UtkForce AI हूँ। नीचे लहरों को देखिए और माउस हिलाकर 3D इफ़ेक्ट का मज़ा लीजिए! 😎
+                नमस्ते! मैं UtkForce 3D मोबाइल चैट UI हूँ 😎  
             </div>
         </div>
 
         <div class="input-area">
-            <input type="text" id="userInput" class="txt-box" placeholder="यहाँ टाइप करें..." onkeydown="if(event.key==='Enter') send()">
-            <button class="send-btn" onclick="send()"><i class="material-icons">send</i></button>
+            <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." />
+            <button class="send-btn" onclick="send()">➤</button>
         </div>
     </div>
 
     <script>
-        // --- 3D TILT LOGIC (MAJA FACTOR) ---
-        const card = document.getElementById('tiltCard');
-        const container = document.body;
+        function send() {
+            let input = document.getElementById("userInput");
+            let msg = input.value.trim();
+            if (!msg) return;
 
-        container.addEventListener('mousemove', (e) => {
-            const xAxis = (window.innerWidth / 2 - e.pageX) / 20; // Rotation logic
-            const yAxis = (window.innerHeight / 2 - e.pageY) / 20;
-            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-        });
+            let box = document.getElementById("chatBox");
+            box.innerHTML += `<div class="msg user">${msg}</div>`;
+            input.value = "";
 
-        // Reset when mouse leaves
-        container.addEventListener('mouseleave', () => {
-            card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-        });
-
-        // --- Chat & API Logic ---
-        // ⚠️ RENDER URL YAHAN DALEIN
-        const API_URL = "https://YOUR-RENDER-BACKEND-URL.onrender.com/generate"; 
-
-        const chatBox = document.getElementById('chatBox');
-        const userInput = document.getElementById('userInput');
-
-        async function send() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            // User Msg
-            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
-            userInput.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Loading
-            const loaderId = 'load' + Date.now();
-            chatBox.innerHTML += `<div class="msg ai" id="${loaderId}">...</div>`;
-
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({prompt: text})
-                });
-                const data = await res.json();
-                document.getElementById(loaderId).innerText = data.text || "No reply";
-            } catch (e) {
-                document.getElementById(loaderId).innerText = "Error connecting.";
-            }
+            box.scrollTop = box.scrollHeight;
         }
     </script>
+
 </body>
 </html>
