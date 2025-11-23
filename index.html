@@ -1,444 +1,259 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>UtkForce AI Chatbot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UtkForce Ultimate 3D</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
-        /* --- CSS Styling: Enhanced Premium Dark Theme with Flow --- */
-        :root {
-            --bg: #071028;
-            --card: rgba(255, 255, 255, 0.05); /* Glass Base */
-            --muted: #a0aec0;
-            --accent: #00d4ff; /* Primary Highlight */
-            --glow-color: rgba(0, 212, 255, 0.4); /* Accent Glow */
-            --ai-color: #00d4ff;
-            --user-color: #7966f1;
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        /* 🌊 Flowing Water/Wave Background Animation */
-        @keyframes flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
+        /* --- 1. Background with Deep Ocean Gradient --- */
         body {
             margin: 0;
-            font-family: 'Poppins', sans-serif;
-            
-            /* **गहरा नीला डायनेमिक बैकग्राउंड** */
-            background: linear-gradient(-45deg, #020917, #061126, #020917, #061126);
-            background-size: 400% 400%; /* लहर के लिए बड़ा साइज़ */
-            animation: flow 20s ease infinite; /* 20 सेकंड का धीरे फ्लो */
-            
-            color: #e6eef8;
-            min-height: 100vh;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #020024 0%, #090979 35%, #00d4ff 100%);
+            height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 30px 20px;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1000px; /* Essential for 3D effect */
         }
-        
-        .container {
+
+        /* --- 2. Animated Ocean Waves at Bottom --- */
+        .ocean {
+            height: 5%;
             width: 100%;
-            max-width: 800px;
-            /* **ग्लासमोर्फिज्म और 3D शैडो** */
-            background: var(--card);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            background: #015871;
+            z-index: 1;
+        }
+        .wave {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198'%3E%3Cpath fill='%23ffffff' d='M1600 120L1400 60c-200-60-600-60-800 0S0 120 0 120V0h1600z' opacity='.5'/%3E%3Cpath fill='%23ffffff' d='M1600 90L1400 30C1200-30 800-30 600 30S0 90 0 90V0h1600z'/%3E%3C/svg%3E") repeat-x; 
+            position: absolute;
+            top: -100px;
+            width: 6400px;
+            height: 100px;
+            animation: wave 7s cubic-bezier( 0.36, 0.45, 0.63, 0.53) infinite;
+            transform: translate3d(0, 0, 0);
+            opacity: 0.6;
+        }
+        .wave:nth-of-type(2) {
+            top: -75px;
+            animation: wave 9s cubic-bezier( 0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
+            opacity: 1;
+        }
+
+        @keyframes wave {
+            0% { margin-left: 0; }
+            100% { margin-left: -1600px; }
+        }
+        @keyframes swell {
+            0%, 100% { transform: translate3d(0,-25px,0); }
+            50% { transform: translate3d(0,5px,0); }
+        }
+
+        /* --- 3. The 3D Tilt Card (Magic Happens Here) --- */
+        .chat-card {
+            width: 100%;
+            max-width: 400px;
+            height: 85vh;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8); /* गहरा 3D प्रभाव */
-            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            /* Deep 3D Shadows */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.5),
+                inset 0 0 30px rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            transition: all 0.3s ease-in-out;
+            position: relative;
+            z-index: 10;
+            transition: transform 0.1s; /* Smooth movement */
+            transform-style: preserve-3d;
         }
-        h1 {
-            text-align: center;
-            color: var(--accent);
-            text-shadow: 0 0 12px var(--glow-color); /* बेहतर ग्लो */
-            margin-bottom: 10px;
-            font-weight: 600;
+
+        /* Shine Effect moving across card */
+        .chat-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+            transform: skewX(-25deg);
+            animation: shine 6s infinite;
+            pointer-events: none;
         }
-        #chatWindow {
-            height: 65vh;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        /* --- Header --- */
+        .header {
             padding: 20px;
-            background: rgba(0, 0, 0, 0.25); /* और गहरा चैट बैकग्राउंड */
-            scroll-behavior: smooth;
-        }
-        /* Scrollbar Styling for modern look */
-        #chatWindow::-webkit-scrollbar { width: 8px; }
-        #chatWindow::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.4); border-radius: 10px; }
-        #chatWindow::-webkit-scrollbar-track { background: transparent; }
-        
-        .message {
-            display: flex;
-            margin-bottom: 20px;
-            animation: fadeIn 0.4s ease-out; /* मैसेज फ्लो एनिमेशन */
-        }
-        .user .bubble {
-            background-color: var(--user-color);
-            border-radius: 20px 20px 5px 20px;
-            margin-left: auto;
-            text-align: left;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* 3D बबल शैडो */
-        }
-        .ai .bubble {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #e6eef8;
-            border-radius: 20px 20px 20px 5px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* 3D बबल शैडो */
-        }
-        .bubble {
-            max-width: 80%;
-            padding: 14px 18px;
-            font-size: 15px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-        .message-image {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: transform 0.3s;
-        }
-        .message-image:hover {
-            transform: scale(1.02);
-        }
-        #inputArea {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-            padding-top: 10px;
-        }
-        #promptInput {
-            flex-grow: 1;
-            padding: 14px 18px;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
             background: rgba(0, 0, 0, 0.2);
-            color: inherit;
-            font-size: 16px;
-            outline: none;
-            min-height: 52px;
-            resize: none;
-            line-height: 1.5;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            color: white;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateZ(20px); /* 3D Pop out text */
         }
-        #promptInput:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.6); /* फोकस पर 3D ग्लो */
+        .title { font-size: 1.4em; font-weight: bold; text-shadow: 0 2px 10px rgba(0,212,255,0.8); }
+        .subtitle { font-size: 0.8em; opacity: 0.8; margin-top: 5px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+
+        /* --- Chat Area --- */
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transform: translateZ(10px); /* Inner 3D depth */
         }
-        .icon-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--accent);
-            border: none;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            cursor: pointer;
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+
+        .msg {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .ai {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.85);
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+        .user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* --- Input Area --- */
+        .input-area {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* 3D बटन शैडो */
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateZ(20px); /* 3D Pop out */
         }
-        .icon-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px); /* 3D लिफ्ट इफ़ेक्ट */
-        }
-        #sendBtn {
-            background: var(--accent);
-            color: #002;
-            box-shadow: 0 4px 10px var(--glow-color);
-        }
-        #sendBtn:hover {
-            background: #0af8ff;
-            transform: scale(1.05);
-        }
-        #sendBtn:disabled {
-            background: var(--muted);
-            color: #333;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        #imagePreviewContainer {
-            margin-top: 15px;
-            padding: 12px;
-            border: 1px dashed var(--accent);
-            border-radius: 12px;
-            align-items: center;
-            gap: 15px;
-            max-width: 300px;
-            background: rgba(0, 0, 0, 0.1);
-        }
-        #removeImageBtn {
-            font-size: 14px;
-            padding: 6px 12px;
-            height: auto;
-            width: auto;
-            background: #dc2626;
-            color: white;
-            border-radius: 8px;
+        .txt-box {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 30px;
             border: none;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.9);
+            margin-right: 10px;
+            outline: none;
+            transition: 0.3s;
         }
-        .footer-text {
-            font-size: 13px;
-            color: var(--muted);
-            text-align: center;
-            margin-top: 15px;
-        }
-        /* Keyframe for message animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Loading Dots Animation */
-        .loading-dot {
-            height: 12px;
-            width: 12px;
-            background-color: var(--ai-color);
+        .txt-box:focus { box-shadow: 0 0 15px #00d4ff; }
+        
+        .send-btn {
+            background: #00d4ff;
+            border: none;
+            width: 45px; height: 45px;
             border-radius: 50%;
-            display: inline-block;
-            animation: bounce 1.4s infinite ease-in-out both;
-            margin: 0 3px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 20px #00d4ff;
+            display: flex; justify-content: center; align-items: center;
+            transition: 0.2s;
         }
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
+        .send-btn:active { transform: scale(0.9); }
+
     </style>
-    
 </head>
 <body>
-    <div class="container">
-        <h1>UtkForce AI</h1>
-        <div id="chatWindow">
-            <div class="message ai">
-                <div class="bubble">नमस्ते, मैं UtkForce AI हूँ। मैं आपकी कैसे मदद कर सकता हूँ?</div>
+
+    <div class="ocean">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="chat-card" id="tiltCard">
+        <div class="header">
+            <div class="title">Mukta AI + UtkForce</div>
+            <div class="subtitle">निर्माता: Utkarsh Maurya</div>
+        </div>
+
+        <div class="messages" id="chatBox">
+            <div class="msg ai">
+                नमस्ते! मैं UtkForce AI हूँ। नीचे लहरों को देखिए और माउस हिलाकर 3D इफ़ेक्ट का मज़ा लीजिए! 😎
             </div>
         </div>
 
-        <div id="imagePreviewContainer" style="display: none;">
-            <img id="imagePreview" alt="Attached Image">
-            <button id="removeImageBtn">हटाएँ</button>
-        </div>
-
-        <div id="inputArea">
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            
-            <button class="icon-btn" id="attachImageBtn" title="चित्र संलग्न करें">
-                <i class="fas fa-image"></i>
-            </button>
-            <textarea id="promptInput" placeholder="अपना सवाल यहाँ लिखें..." rows="1"></textarea>
-            <button class="icon-btn" id="sendBtn" disabled title="भेजें">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        <div class="footer-text">
-            Developed by Utkarsh Maurya - Secure Backend via Render.
+        <div class="input-area">
+            <input type="text" id="userInput" class="txt-box" placeholder="यहाँ टाइप करें..." onkeydown="if(event.key==='Enter') send()">
+            <button class="send-btn" onclick="send()"><i class="material-icons">send</i></button>
         </div>
     </div>
 
-<script>
-(function(){
-    // --- Backend API Endpoint (यह कोड Python से संचार करता है, इसे सुरक्षित रखा गया है) ---
-    const API_ENDPOINT = 'https://utkforceai-backend.onrender.com/api/generate';
-    // --- DOM Elements ---
-    const chatWindow = document.getElementById('chatWindow');
-    const promptInput = document.getElementById('promptInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const attachImageBtn = document.getElementById('attachImageBtn');
-    const imageInput = document.getElementById('imageInput');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const imagePreview = document.getElementById('imagePreview');
-    const removeImageBtn = document.getElementById('removeImageBtn');
+    <script>
+        // --- 3D TILT LOGIC (MAJA FACTOR) ---
+        const card = document.getElementById('tiltCard');
+        const container = document.body;
 
-    let isLoading = false;
-    let attachedImage = null; // Stores { base64: string, mimeType: string }
+        container.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 20; // Rotation logic
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 20;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
 
-    // --- Helper Functions ---
+        // Reset when mouse leaves
+        container.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
 
-    function setLoading(loading) {
-        isLoading = loading;
-        promptInput.disabled = loading;
-        sendBtn.disabled = loading || promptInput.value.trim() === '';
-        attachImageBtn.disabled = loading;
-    }
+        // --- Chat & API Logic ---
+        // ⚠️ RENDER URL YAHAN DALEIN
+        const API_URL = "https://YOUR-RENDER-BACKEND-URL.onrender.com/generate"; 
 
-    function createMessageBubble(text, sender, isImage = false, imageSource = null) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}`;
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
 
-        const bubbleDiv = document.createElement('div');
-        bubbleDiv.className = 'bubble';
-        
-        // Handle markdown (basic)
-        const formattedText = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-            .replace(/`(.*?)`/g, '<code>$1</code>'); // Inline Code
-            
-        bubbleDiv.innerHTML = formattedText; // Use innerHTML to parse basic formatting
-        
-        if (isImage && imageSource) {
-            const img = document.createElement('img');
-            img.src = imageSource;
-            img.className = 'message-image';
-            bubbleDiv.prepend(img);
-        }
+        async function send() {
+            const text = userInput.value.trim();
+            if (!text) return;
 
-        messageDiv.appendChild(bubbleDiv);
-        chatWindow.appendChild(messageDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
+            // User Msg
+            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+            userInput.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-    function displayError(message) {
-        createMessageBubble(`❌ त्रुटि: ${message}`, 'ai');
-    }
+            // Loading
+            const loaderId = 'load' + Date.now();
+            chatBox.innerHTML += `<div class="msg ai" id="${loaderId}">...</div>`;
 
-    // --- Image Handling ---
-
-    attachImageBtn.addEventListener('click', () => {
-        imageInput.click();
-    });
-
-    imageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64String = e.target.result.split(',')[1];
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.style.display = 'flex';
-                attachedImage = {
-                    base64: base64String,
-                    mimeType: file.type
-                };
-                promptInput.focus();
-                sendBtn.disabled = false;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    removeImageBtn.addEventListener('click', () => {
-        imagePreviewContainer.style.display = 'none';
-        imagePreview.src = '';
-        imageInput.value = '';
-        attachedImage = null;
-        if (!promptInput.value.trim()) {
-             sendBtn.disabled = true;
-        }
-    });
-
-    // --- Core Response Logic ---
-
-    async function generateResponse() {
-        if (isLoading) return;
-
-        const userQuery = promptInput.value.trim();
-        if (!userQuery && !attachedImage) return;
-
-        // 1. यूज़र का मैसेज डिस्प्ले करें
-        let displayedQuery = userQuery;
-        let imageSource = null;
-        if (attachedImage) {
-            displayedQuery = userQuery ? `${userQuery}\n\n[संलग्न चित्र]` : `[संलग्न चित्र]`;
-            imageSource = imagePreview.src;
-        }
-        createMessageBubble(displayedQuery, 'user', !!attachedImage, imageSource);
-        
-        // इनपुट फील्ड साफ़ करें और इमेज हटाएँ
-        promptInput.value = '';
-        removeImageBtn.click(); 
-        
-        setLoading(true);
-
-        // AI लोडिंग बबल
-        const loadingBubble = document.createElement('div');
-        loadingBubble.className = 'message ai';
-        loadingBubble.innerHTML = `<div class="bubble"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>`;
-        chatWindow.appendChild(loadingBubble);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        
-        try {
-            const payload = {
-                userQuery: userQuery,
-                base64Image: attachedImage ? attachedImage.base64 : null,
-                mimeType: attachedImage ? attachedImage.mimeType : null
-            };
-            
-            // 2. सुरक्षित Python Backend API को कॉल करें
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(errorBody.detail || `अनुरोध विफल हुआ: ${response.statusText}`);
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: text})
+                });
+                const data = await res.json();
+                document.getElementById(loaderId).innerText = data.text || "No reply";
+            } catch (e) {
+                document.getElementById(loaderId).innerText = "Error connecting.";
             }
-
-            const result = await response.json();
-            const aiResponseText = result.response || "AI जवाब जेनरेट करने में विफल रहा।";
-            
-            // लोडिंग बबल को हटाएँ
-            chatWindow.removeChild(loadingBubble);
-
-            // AI जवाब डिस्प्ले करें
-            createMessageBubble(aiResponseText, 'ai');
-
-        } catch (error) {
-            console.error("Backend/API error:", error);
-            // लोडिंग बबल को हटाएँ और एरर दिखाएँ
-            chatWindow.removeChild(loadingBubble);
-            displayError(`अनुरोध विफल हुआ। क्या Backend Live है? Error: ${error.message}`);
-        } finally {
-            setLoading(false);
         }
-    }
-
-    // --- Event Listeners ---
-
-    promptInput.addEventListener('input', () => {
-        const query = promptInput.value.trim();
-        sendBtn.disabled = !(query || attachedImage);
-        
-        // Textarea height adjustment
-        promptInput.style.height = 'auto';
-        promptInput.style.height = promptInput.scrollHeight + 'px';
-    });
-
-    sendBtn.addEventListener('click', generateResponse);
-
-    // Enter Key to Send
-    promptInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            generateResponse();
-        }
-    });
-
-})();
-</script>
+    </script>
 </body>
 </html>
