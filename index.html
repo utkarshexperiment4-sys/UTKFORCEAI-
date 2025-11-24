@@ -1,182 +1,198 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>UtkForce Ultimate 3D</title>
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>UtkForce Ultimate 3D (Mobile)</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
-        /* --- RESET FULLSCREEN (MOST IMPORTANT FIX) --- */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            touch-action: manipulation;
-            background: #000;
-        }
-
-        /* --- Background Gradient --- */
-        body {
+        /* --- RESET & BACKGROUND --- */
+        html,body{height:100%;margin:0;padding:0;overflow:hidden;background:#020024;}
+        body{
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(180deg, #020024 0%, #090979 35%, #00d4ff 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            perspective: 900px;
+            background: linear-gradient(180deg,#020024 0%,#090979 35%,#00d4ff 100%);
+            display:flex;align-items:center;justify-content:center;position:relative;
+            -webkit-font-smoothing:antialiased;touch-action:manipulation;
         }
 
-        /* --- Ocean Waves --- */
-        .ocean {
-            height: 7%;
-            width: 100%;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            background: #015871;
+        /* Waves at bottom */
+        .ocean{position:fixed;left:0;right:0;bottom:0;height:7%;z-index:1;pointer-events:none;overflow:hidden}
+        .wave{position:absolute;top:-100px;left:0;width:6400px;height:100px;background:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198'%3E%3Cpath fill='%23ffffff' d='M1600 120L1400 60c-200-60-600-60-800 0S0 120 0 120V0h1600z' opacity='.5'/%3E%3Cpath fill='%23ffffff' d='M1600 90L1400 30C1200-30 800-30 600 30S0 90 0 90V0h1600z'/%3E%3C/svg%3E") repeat-x;
+            opacity:.6;animation:wave 7s linear infinite;
         }
-        .wave {
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198'%3E%3Cpath fill='%23ffffff' d='M1600 120L1400 60c-200-60-600-60-800 0S0 120 0 120V0h1600z' opacity='.5'/%3E%3Cpath fill='%23ffffff' d='M1600 90L1400 30C1200-30 800-30 600 30S0 90 0 90V0h1600z'/%3E%3C/svg%3E")
-                repeat-x;
-            position: absolute;
-            top: -100px;
-            width: 6400px;
-            height: 100px;
-            animation: wave 7s linear infinite;
-            opacity: 0.6;
-        }
-        @keyframes wave {
-            0% { margin-left: 0; }
-            100% { margin-left: -1600px; }
+        @keyframes wave{0%{margin-left:0}100%{margin-left:-1600px}}
+
+        /* --- CHAT CARD (CENTERED, MOBILE-FRIENDLY) --- */
+        .chat-card{
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+            width:92%; max-width:420px; height:88%; border-radius:22px;
+            background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.25);
+            box-shadow:0 24px 60px rgba(0,0,0,0.55), inset 0 2px 10px rgba(255,255,255,0.02);
+            backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+            display:flex;flex-direction:column; z-index:10;
+            touch-action:pan-y;
         }
 
-        /* --- 3D CHAT CARD FIXED CENTER --- */
-        .chat-card {
-            width: 92%;
-            max-width: 420px;
-            height: 88%;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            backdrop-filter: blur(18px);
+        /* Header */
+        .header{padding:14px;text-align:center;color:#fff;border-bottom:1px solid rgba(255,255,255,0.06);border-top-left-radius:22px;border-top-right-radius:22px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12)); transform:translateZ(10px)}
+        .title{font-weight:700;font-size:1.2rem;text-shadow:0 6px 18px rgba(0,212,255,0.12)}
+        .subtitle{font-size:0.85rem;opacity:.85;margin-top:6px;padding:4px 10px;border-radius:14px;background:rgba(255,255,255,0.03);display:inline-block}
 
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        /* Messages area */
+        .messages{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+        .messages::-webkit-scrollbar{width:6px}
+        .messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:6px}
 
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
+        .msg{max-width:80%;padding:12px 14px;border-radius:14px;font-size:1rem;line-height:1.4;box-shadow:0 8px 20px rgba(0,0,0,0.25)}
+        .ai{align-self:flex-start;background:rgba(255,255,255,0.92);color:#111;border-bottom-left-radius:4px}
+        .user{align-self:flex-end;background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;border-bottom-right-radius:4px}
 
-        /* --- Header --- */
-        .header {
-            padding: 15px;
-            text-align: center;
-            color: white;
-            background: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
-        .title { font-size: 1.3em; font-weight: bold; }
-        .subtitle { font-size: 0.9em; opacity: .8; }
+        /* Input area */
+        .input-area{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.04);display:flex;gap:10px;align-items:center;background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06))}
+        .txt-box{flex:1;padding:12px 14px;border-radius:28px;border:none;font-size:1rem;background:rgba(255,255,255,0.95);outline:none}
+        .txt-box:focus{box-shadow:0 0 14px rgba(0,212,255,0.18)}
+        .send-btn{width:46px;height:46px;border-radius:50%;border:none;background:#00d4ff;color:#002;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,212,255,0.12);}
 
-        /* --- Messages --- */
-        .messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .msg {
-            padding: 10px 15px;
-            border-radius: 12px;
-            font-size: 1em;
-            max-width: 80%;
-        }
-        .ai {
-            background: rgba(255,255,255,0.85);
-            align-self: flex-start;
-        }
-        .user {
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
-            align-self: flex-end;
-            color: white;
-        }
+        /* Loading bubble small style */
+        .loading-dots{display:inline-flex;gap:6px;align-items:center}
+        .loading-dots span{width:8px;height:8px;border-radius:50%;background:#00d4ff;transform:scale(0);animation:dot 1.2s infinite}
+        .loading-dots span:nth-child(1){animation-delay:-0.24s}
+        .loading-dots span:nth-child(2){animation-delay:-0.12s}
+        .loading-dots span:nth-child(3){animation-delay:0}
+        @keyframes dot{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
 
-        /* --- Input Area --- */
-        .input-area {
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .txt-box {
-            flex: 1;
-            padding: 12px;
-            border-radius: 30px;
-            border: none;
-            outline: none;
-            font-size: 1em;
-        }
-        .send-btn {
-            width: 45px;
-            height: 45px;
-            border: none;
-            border-radius: 50%;
-            background: #00d4ff;
-            color: white;
-            font-size: 20px;
+        /* Responsive small tweaks */
+        @media (max-width:380px){
+            .chat-card{height:92%;width:96%;border-radius:16px}
+            .title{font-size:1.05rem}
         }
     </style>
 </head>
-
 <body>
+    <!-- waves -->
+    <div class="ocean" aria-hidden="true"><div class="wave"></div></div>
 
-    <div class="ocean">
-        <div class="wave"></div>
-    </div>
-
-    <div class="chat-card">
+    <!-- chat card -->
+    <div class="chat-card" role="application" aria-label="UtkForce Mobile Chat">
         <div class="header">
             <div class="title">Mukta AI + UtkForce</div>
             <div class="subtitle">निर्माता: Utkarsh Maurya</div>
         </div>
 
-        <div class="messages" id="chatBox">
-            <div class="msg ai">
-                नमस्ते! मैं UtkForce 3D मोबाइल चैट UI हूँ 😎  
-            </div>
+        <div class="messages" id="chatBox" role="log" aria-live="polite">
+            <div class="msg ai">नमस्ते! मैं UtkForce 3D मोबाइल चैट UI हूँ 😎</div>
         </div>
 
         <div class="input-area">
-            <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." />
-            <button class="send-btn" onclick="send()">➤</button>
+            <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." aria-label="प्रॉम्प्ट इनपुट" />
+            <button id="sendBtn" class="send-btn" aria-label="भेजें">➤</button>
         </div>
     </div>
 
-    <script>
-        function send() {
-            let input = document.getElementById("userInput");
-            let msg = input.value.trim();
-            if (!msg) return;
+<script>
+/* ---------- CONFIG: सेट करो अपना बैकएंड (Render) URL ---------- */
+const API_ENDPOINT = "https://utkforceai-backend.onrender.com/api/generate"; 
+// अगर तुम्हारा endpoint अलग है तो ऊपर बदल दो।
 
-            let box = document.getElementById("chatBox");
-            box.innerHTML += `<div class="msg user">${msg}</div>`;
-            input.value = "";
+/* ---------- DOM ---------- */
+const chatBox = document.getElementById('chatBox');
+const inputEl = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
 
-            box.scrollTop = box.scrollHeight;
+let loading = false;
+
+function appendMessage(text, who='ai', isHTML=false){
+    const div = document.createElement('div');
+    div.className = 'msg ' + (who==='user' ? 'user' : 'ai');
+    if(isHTML) div.innerHTML = text;
+    else div.textContent = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return div;
+}
+
+function setLoading(state){
+    loading = state;
+    sendBtn.disabled = state;
+    inputEl.disabled = state;
+}
+
+/* send function with fetch + error handling */
+async function send(){
+    if(loading) return;
+    const text = inputEl.value.trim();
+    if(!text) return;
+
+    // show user message immediately
+    appendMessage(text, 'user');
+    inputEl.value = '';
+    inputEl.focus();
+
+    // show loading bubble
+    const loadEl = appendMessage('', 'ai', true);
+    loadEl.querySelector ? loadEl.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>' : (loadEl.textContent = '...');
+
+    setLoading(true);
+
+    try{
+        const payload = { userQuery: text }; // backend expected shape; change if needed
+        const res = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        // handle non-JSON or non-OK
+        const txt = await res.text().catch(()=>null);
+        let data = null;
+        try { data = txt ? JSON.parse(txt) : null; } catch(e){ data = null; }
+
+        if(!res.ok){
+            // try extract message
+            const errMsg = (data && (data.detail||data.error||data.message)) || (`Backend error ${res.status} ${res.statusText}`);
+            throw new Error(errMsg);
         }
-    </script>
 
+        // prefer common keys: response / text / reply
+        let aiText = (data && (data.response || data.text || data.reply || data.answer)) || null;
+        if(!aiText){
+            // if backend returned plain text
+            aiText = (typeof txt === 'string' && txt.length>0) ? txt : "AI ने उत्तर नहीं भेजा।";
+        }
+
+        // remove loading and append aiText
+        chatBox.removeChild(loadEl);
+        appendMessage(aiText, 'ai');
+
+    } catch(err){
+        console.error("API error:", err);
+        // replace loading with friendly error
+        if(chatBox.contains(loadEl)){
+            chatBox.removeChild(loadEl);
+        }
+        appendMessage("❌ कनेक्शन त्रुटि: " + (err.message || 'Unknown error'), 'ai');
+    } finally {
+        setLoading(false);
+    }
+}
+
+/* events */
+sendBtn.addEventListener('click', send);
+inputEl.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        send();
+    }
+});
+
+/* ensure input visible when keyboard opens on mobile (simple UX fix) */
+inputEl.addEventListener('focus', ()=>{
+    setTimeout(()=> {
+        // scroll chat card into view to avoid keyboard hiding it
+        document.querySelector('.chat-card').scrollIntoView({behavior:'smooth', block:'center'});
+    }, 200);
+});
+</script>
 </body>
 </html>
