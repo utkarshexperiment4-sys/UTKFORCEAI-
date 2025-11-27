@@ -3,3 +3,5 @@ uvicorn
 google-genai
 pydantic
 python-multipart
+openai
+chromadb
