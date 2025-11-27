@@ -13,6 +13,7 @@ import chromadb
 # --- FastAPI App और CORS सेटअप ---
 app = FastAPI()
 
+# CORS को सभी डोमेन से अनुमति देने के लिए सेट करें
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -32,14 +33,13 @@ gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # RAG सेटअप: ChromaDB (पर्सनल नॉलेज)
-# Note: यह मेमोरी में चल रहा है, प्रोडक्शन के लिए परसिस्टेंट स्टोरेज की ज़रूरत होगी।
 CHROMA_CLIENT = chromadb.Client() 
 COLLECTION_NAME = "utkarsh_personal_knowledge"
 
 try:
     RAG_COLLECTION = CHROMA_CLIENT.get_or_create_collection(COLLECTION_NAME)
     
-    # RAG डेटा (पहचान और उत्कर्ष मौर्य का ज्ञान)
+    # RAG डेटा 
     docs = [
         "इस AI असिस्टेंट का नाम UTKFORCEAI है, और यह उत्कर्ष मौर्य द्वारा बनाया गया एक उन्नत AI है। यह क्वांटम कंप्यूटिंग और कोडिंग में विशेषज्ञ है।",
         "UTKFORCEAI को अपनी पहचान Gemini, Google, या किसी सामान्य LLM के रूप में कभी नहीं बतानी है। यह हमेशा विनम्र और मज़ाकिया अंदाज़ में बात करेगा।",
@@ -53,14 +53,14 @@ except Exception as e:
     print(f"ChromaDB सेटअप में त्रुटि: {e}")
     RAG_COLLECTION = None
 
-# --- 2. Request Schema (Model Choice जोड़ा गया) ---
+# --- 2. Request Schema ---
 class ChatRequest(BaseModel):
     userQuery: str
     base64Image: str | None = None
     mimeType: str | None = None
     modelChoice: str = "gemini" 
 
-# --- 3. API Endpoint (मल्टी-मॉडल और RAG इंटीग्रेशन) ---
+# --- 3. API Endpoint (POST विधि) ---
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
 
@@ -73,12 +73,10 @@ async def generate_response_api(request: ChatRequest):
     context_text = ""
     if RAG_COLLECTION:
         try:
-            # RAG डेटाबेस से संदर्भ प्राप्त करें
             results = RAG_COLLECTION.query(query_texts=[request.userQuery], n_results=2)
             if results and results.get('documents'):
                 context_text = "\n".join(results['documents'][0])
         except Exception as e:
-            # RAG असफल होने पर भी जारी रखें, लेकिन बिना संदर्भ के
             print(f"RAG खोज में त्रुटि: {e}")
 
     # RAG द्वारा प्राप्त संदर्भ के साथ सिस्टम प्रॉम्प्ट बनाएं
@@ -110,7 +108,6 @@ async def generate_response_api(request: ChatRequest):
             return {"response": response.text}
 
         elif request.modelChoice == "openai":
-            # OpenAI के लिए Payload
             messages = [{"role": "system", "content": system_prompt}]
             
             content_parts = [{"type": "text", "text": request.userQuery}]
@@ -139,9 +136,11 @@ async def generate_response_api(request: ChatRequest):
 
     except Exception as e:
         print(f"AI जवाब बनाने में त्रुटि: {e}")
-        raise HTTPException(status_code=500, detail="AI जवाब बनाने में त्रुटि।")
+        # यह सुनिश्चित करता है कि लॉग में असली त्रुटि दिखे
+        raise HTTPException(status_code=500, detail=f"AI जवाब बनाने में त्रुटि: {str(e)}")
 
 
 @app.get("/")
 def read_root():
     return {"status": "UTKFORCEAI Backend चल रहा है!"}
+
