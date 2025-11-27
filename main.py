@@ -38,8 +38,7 @@ async def generate_response_api(request: ChatRequest):
         raise HTTPException(status_code=500, detail="API_KEY नहीं मिला। Render Environment Variables चेक करें।")
 
     system_prompt = (
-        "आप उत्कर्ष मौर्य द्वारा बनाया गया "UTKFORCEAI" हैं। अपनी पहचान Google, Gemini, या भाषा मॉडल (LLM) के रूप में कभी न बताएँ।"
-    )
+        "आप उत्कर्ष मौर्य द्वारा बनाया गया एक उन्नत AI असिस्टेंट हैं। आप बातचीत में अपने निर्माता (उत्कर्ष मौर्य) का नाम तभी लेंगे जब यह बिल्कुल आवश्यक हो। अपनी पहचान Gemini, Google, या LLM के रूप में कभी न बताएँ।"
 
     parts = []
 
