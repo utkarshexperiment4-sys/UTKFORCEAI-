@@ -26,7 +26,9 @@
         /* --- CHAT CARD (CENTERED, MOBILE-FRIENDLY) --- */
         .chat-card{
             position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-            width:92%; max-width:420px; height:88%; border-radius:22px;
+            width:92%; max-width:420px; 
+            height:92%; /* बढ़ाया गया: चैट एरिया को बड़ा करने के लिए */
+            border-radius:22px;
             background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.25);
             box-shadow:0 24px 60px rgba(0,0,0,0.55), inset 0 2px 10px rgba(255,255,255,0.02);
             backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -39,7 +41,7 @@
         .title{font-weight:700;font-size:1.2rem;text-shadow:0 6px 18px rgba(0,212,255,0.12)}
         .subtitle{font-size:0.85rem;opacity:.85;margin-top:6px;padding:4px 10px;border-radius:14px;background:rgba(255,255,255,0.03);display:inline-block}
 
-        /* Messages area */
+        /* Messages area (चैट एरिया) */
         .messages{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
         .messages::-webkit-scrollbar{width:6px}
         .messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:6px}
@@ -48,9 +50,39 @@
         .ai{align-self:flex-start;background:rgba(255,255,255,0.92);color:#111;border-bottom-left-radius:4px}
         .user{align-self:flex-end;background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;border-bottom-right-radius:4px}
 
-        /* Input area */
-        .input-area{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.04);display:flex;gap:10px;align-items:center;background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06))}
-        .txt-box{flex:1;padding:12px 14px;border-radius:28px;border:none;font-size:1rem;background:rgba(255,255,255,0.95);outline:none}
+        /* Input area (सुधारित) */
+        .input-area{
+            padding:12px 14px;
+            border-top:1px solid rgba(255,255,255,0.04);
+            display:flex;
+            gap:8px; 
+            align-items:center;
+            background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06));
+            flex-wrap: nowrap; /* रैपिंग को रोकता है */
+        }
+
+        /* मॉडल सेलेक्टर (छोटा किया गया) */
+        .model-select{
+            padding:10px 4px; /* padding कम किया */
+            border-radius:12px;
+            border:1px solid #00d4ff;
+            font-size: 0.75rem; /* फ़ॉन्ट छोटा किया */
+            white-space: nowrap;
+            min-width: 70px; /* न्यूनतम चौड़ाई सेट की */
+            background: rgba(255,255,255,0.95);
+            appearance: none; /* डिफ़ॉल्ट स्टाइल को हटाता है */
+        }
+
+        .txt-box{
+            flex:1; 
+            min-width: 50px; 
+            padding:12px 14px;
+            border-radius:28px;
+            border:none;
+            font-size:1rem;
+            background:rgba(255,255,255,0.95);
+            outline:none;
+        }
         .txt-box:focus{box-shadow:0 0 14px rgba(0,212,255,0.18)}
         .send-btn{width:46px;height:46px;border-radius:50%;border:none;background:#00d4ff;color:#002;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,212,255,0.12);}
 
@@ -64,49 +96,64 @@
 
         /* Responsive small tweaks */
         @media (max-width:380px){
-            .chat-card{height:92%;width:96%;border-radius:16px}
+            .chat-card{height:96%;width:98%;border-radius:16px}
             .title{font-size:1.05rem}
+            .model-select{min-width: 60px; font-size: 0.7rem;} /* और छोटा */
+            .txt-box{padding: 10px 12px;}
+            .send-btn{width:40px;height:40px;}
         }
     </style>
 </head>
 <body>
-    <!-- waves -->
     <div class="ocean" aria-hidden="true"><div class="wave"></div></div>
 
-    <!-- chat card -->
     <div class="chat-card" role="application" aria-label="UtkForce Mobile Chat">
         <div class="header">
-            <div class="title">Free + UtkForceAI</div>
-            <div class="subtitle">निर्माता: Utkarsh Maurya</div>
+            <div class="title">UtkForceAI - Voice & Multi-Model</div>
+            <div class="subtitle">निर्माता: Utkarsh Maurya | <span id="modelStatus">Gemini (Active)</span></div>
         </div>
 
         <div class="messages" id="chatBox" role="log" aria-live="polite">
-            <div class="msg ai">नमस्ते! मैं आपका Utkforce AI हूँ... चलो दुनिया को थोड़ा और स्मार्ट बनाते हैं मुफ़्त में! 😉 </div>
+            <div class="msg ai">नमस्ते! मैं आपका Utkforce AI हूँ। माइक बटन दबाकर बोलें या नीचे टाइप करें। 😉</div>
         </div>
 
         <div class="input-area">
+            <select id="modelSelector" class="model-select" aria-label="AI मॉडल चुनें">
+                <option value="gemini">Gemini</option>
+                <option value="openai">ChatGPT</option>
+            </select>
+
             <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." aria-label="प्रॉम्प्ट इनपुट" />
+            
+            <button id="micBtn" class="send-btn" aria-label="वॉयस इनपुट शुरू करें" style="background: #ff5722;">
+                <i class="material-icons" style="font-size: 24px;">mic</i>
+            </button>
+
             <button id="sendBtn" class="send-btn" aria-label="भेजें">➤</button>
         </div>
     </div>
 
 <script>
-/* ---------- CONFIG: सेट करो अपना बैकएंड (Render) URL ---------- */
-const API_ENDPOINT = "https://utkforceai-backend.onrender.com/api/generate"; 
-// अगर तुम्हारा endpoint अलग है तो ऊपर बदल दो।
+/* ---------- CONFIG: सेट करो अपना बैकएंड URL ---------- */
+const API_ENDPOINT = "http://127.0.0.1:8000/api/generate"; 
+// जब Render पर डिप्लॉय करें तो इसे बदल दें
 
-/* ---------- DOM ---------- */
+/* ---------- DOM और स्थिति चर ---------- */
 const chatBox = document.getElementById('chatBox');
 const inputEl = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
+const micBtn = document.getElementById('micBtn');
+const modelSelector = document.getElementById('modelSelector');
+const modelStatusEl = document.getElementById('modelStatus');
 
 let loading = false;
+let currentRecognition = null;
 
-function appendMessage(text, who='ai', isHTML=false){
+// Helper Functions
+function appendMessage(text, who='ai'){
     const div = document.createElement('div');
     div.className = 'msg ' + (who==='user' ? 'user' : 'ai');
-    if(isHTML) div.innerHTML = text;
-    else div.textContent = text;
+    div.textContent = text;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
     return div;
@@ -116,69 +163,162 @@ function setLoading(state){
     loading = state;
     sendBtn.disabled = state;
     inputEl.disabled = state;
+    micBtn.disabled = state;
+    if(state){
+        micBtn.style.background = '#ccc';
+        micBtn.innerHTML = '<i class="material-icons">mic_off</i>';
+    } else {
+        micBtn.style.background = '#ff5722';
+        micBtn.innerHTML = '<i class="material-icons">mic</i>';
+    }
 }
 
-/* send function with fetch + error handling */
-async function send(){
+// -----------------------------------------------------
+// 🎤 V O I C E   I N P U T   L O G I C (सबसे बेहतर)
+// -----------------------------------------------------
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    micBtn.addEventListener('click', startVoiceInput);
+} else {
+    micBtn.disabled = true;
+    micBtn.innerHTML = '<i class="material-icons">mic_off</i>';
+}
+
+function startVoiceInput() {
     if(loading) return;
-    const text = inputEl.value.trim();
+
+    if (currentRecognition) {
+        currentRecognition.stop();
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'hi-IN'; // हिंदी भाषा
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    currentRecognition = recognition;
+
+    recognition.onstart = () => {
+        setLoading(true);
+        inputEl.placeholder = 'सुन रहा हूँ... कृपया बोलें...';
+        micBtn.style.background = '#00ff44'; // माइक बटन को हरा करें
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        inputEl.value = transcript;
+        micBtn.style.background = '#ff5722';
+        micBtn.innerHTML = '<i class="material-icons">mic</i>';
+        send(transcript); // सीधे API को भेजें
+    };
+
+    recognition.onend = () => {
+        // इनपुट खत्म होने पर, UI को लोड स्थिति से हटाएँ
+        // (लेकिन send() इसे तुरंत वापस लोड पर सेट कर देता है)
+        if (!loading) {
+            inputEl.placeholder = 'यहाँ लिखें...';
+            micBtn.style.background = '#ff5722';
+        }
+        currentRecognition = null;
+    };
+
+    recognition.onerror = (event) => {
+        setLoading(false);
+        inputEl.placeholder = 'वॉयस त्रुटि। फिर से प्रयास करें।';
+        micBtn.style.background = '#ff5722';
+        console.error('Speech Recognition Error:', event.error);
+        appendMessage("❌ वॉयस इनपुट समझ नहीं आया।", 'ai');
+    };
+
+    recognition.start();
+}
+
+
+// -----------------------------------------------------
+// 🗣️ V O I C E   O U T P U T   L O G I C
+// -----------------------------------------------------
+
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        // सुनिश्चित करें कि पिछले वक्ता बंद हो जाएँ
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'hi-IN'; // हिंदी वॉयस
+        // आप यहाँ पिच या दर (rate) को एडजस्ट कर सकते हैं
+        // utterance.rate = 1.1; 
+        
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// -----------------------------------------------------
+// 🚀 S E N D   F U N C T I O N 
+// -----------------------------------------------------
+
+async function send(queryText = null){
+    if(loading) return;
+    const text = queryText || inputEl.value.trim();
     if(!text) return;
 
-    // show user message immediately
+    // 1. UI अपडेट
     appendMessage(text, 'user');
     inputEl.value = '';
     inputEl.focus();
 
-    // show loading bubble
     const loadEl = appendMessage('', 'ai', true);
-    loadEl.querySelector ? loadEl.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>' : (loadEl.textContent = '...');
-
+    loadEl.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
     setLoading(true);
 
+    const selectedModel = modelSelector.value;
+
     try{
-        const payload = { userQuery: text }; // backend expected shape; change if needed
+        // 2. PAYLOAD
+        const payload = { 
+            userQuery: text,
+            modelChoice: selectedModel
+        }; 
+
         const res = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
 
-        // handle non-JSON or non-OK
         const txt = await res.text().catch(()=>null);
         let data = null;
         try { data = txt ? JSON.parse(txt) : null; } catch(e){ data = null; }
 
         if(!res.ok){
-            // try extract message
-            const errMsg = (data && (data.detail||data.error||data.message)) || (`Backend error ${res.status} ${res.statusText}`);
+            const errMsg = (data && data.detail) || (`Backend error ${res.status}`);
             throw new Error(errMsg);
         }
 
-        // prefer common keys: response / text / reply
-        let aiText = (data && (data.response || data.text || data.reply || data.answer)) || null;
-        if(!aiText){
-            // if backend returned plain text
-            aiText = (typeof txt === 'string' && txt.length>0) ? txt : "AI ने उत्तर नहीं भेजा।";
-        }
+        // 3. उत्तर प्राप्त करें और बोलें
+        let aiText = data.response || "AI उत्तर देने में विफल रहा।";
 
-        // remove loading and append aiText
         chatBox.removeChild(loadEl);
         appendMessage(aiText, 'ai');
-
+        speak(aiText); // <-- वॉयस आउटपुट
+        
     } catch(err){
         console.error("API error:", err);
-        // replace loading with friendly error
         if(chatBox.contains(loadEl)){
             chatBox.removeChild(loadEl);
         }
-        appendMessage("❌ कनेक्शन त्रुटि: " + (err.message || 'Unknown error'), 'ai');
+        // वॉयस में एरर न बोलें, सिर्फ टेक्स्ट में दें
+        appendMessage("❌ कनेक्शन त्रुटि या AI समस्या: " + (err.message || 'Unknown error'), 'ai'); 
     } finally {
         setLoading(false);
     }
 }
 
 /* events */
-sendBtn.addEventListener('click', send);
+sendBtn.addEventListener('click', ()=>send());
+
 inputEl.addEventListener('keydown', (e)=>{
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
@@ -186,13 +326,17 @@ inputEl.addEventListener('keydown', (e)=>{
     }
 });
 
-/* ensure input visible when keyboard opens on mobile (simple UX fix) */
+modelSelector.addEventListener('change', (e) => {
+    modelStatusEl.textContent = `${e.target.options[e.target.selectedIndex].text} (Active)`;
+});
+
+// Initial setup scroll and focus
 inputEl.addEventListener('focus', ()=>{
     setTimeout(()=> {
-        // scroll chat card into view to avoid keyboard hiding it
         document.querySelector('.chat-card').scrollIntoView({behavior:'smooth', block:'center'});
     }, 200);
 });
 </script>
 </body>
 </html>
+
