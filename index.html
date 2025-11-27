@@ -27,7 +27,7 @@
         .chat-card{
             position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
             width:92%; max-width:420px; 
-            height:92%; /* बढ़ाया गया: चैट एरिया को बड़ा करने के लिए */
+            height:92%; 
             border-radius:22px;
             background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.25);
             box-shadow:0 24px 60px rgba(0,0,0,0.55), inset 0 2px 10px rgba(255,255,255,0.02);
@@ -58,19 +58,19 @@
             gap:8px; 
             align-items:center;
             background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06));
-            flex-wrap: nowrap; /* रैपिंग को रोकता है */
+            flex-wrap: nowrap; 
         }
 
         /* मॉडल सेलेक्टर (छोटा किया गया) */
         .model-select{
-            padding:10px 4px; /* padding कम किया */
+            padding:10px 4px; 
             border-radius:12px;
             border:1px solid #00d4ff;
-            font-size: 0.75rem; /* फ़ॉन्ट छोटा किया */
+            font-size: 0.75rem; 
             white-space: nowrap;
-            min-width: 70px; /* न्यूनतम चौड़ाई सेट की */
+            min-width: 70px; 
             background: rgba(255,255,255,0.95);
-            appearance: none; /* डिफ़ॉल्ट स्टाइल को हटाता है */
+            appearance: none; 
         }
 
         .txt-box{
@@ -98,7 +98,7 @@
         @media (max-width:380px){
             .chat-card{height:96%;width:98%;border-radius:16px}
             .title{font-size:1.05rem}
-            .model-select{min-width: 60px; font-size: 0.7rem;} /* और छोटा */
+            .model-select{min-width: 60px; font-size: 0.7rem;} 
             .txt-box{padding: 10px 12px;}
             .send-btn{width:40px;height:40px;}
         }
@@ -134,9 +134,8 @@
     </div>
 
 <script>
-/* ---------- CONFIG: सेट करो अपना बैकएंड URL ---------- */
-const API_ENDPOINT = "https://utkforceai-backend.onrender.com"; 
-// जब Render पर डिप्लॉय करें तो इसे बदल दें
+/* ---------- CONFIG: सेट करो अपना बैकएंड URL (आपका Render URL) ---------- */
+const API_ENDPOINT = "https://utkforceai-backend.onrender.com/api/generate"; 
 
 /* ---------- DOM और स्थिति चर ---------- */
 const chatBox = document.getElementById('chatBox');
@@ -174,7 +173,7 @@ function setLoading(state){
 }
 
 // -----------------------------------------------------
-// 🎤 V O I C E   I N P U T   L O G I C (सबसे बेहतर)
+// 🎤 V O I C E   I N P U T   L O G I C
 // -----------------------------------------------------
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -214,8 +213,6 @@ function startVoiceInput() {
     };
 
     recognition.onend = () => {
-        // इनपुट खत्म होने पर, UI को लोड स्थिति से हटाएँ
-        // (लेकिन send() इसे तुरंत वापस लोड पर सेट कर देता है)
         if (!loading) {
             inputEl.placeholder = 'यहाँ लिखें...';
             micBtn.style.background = '#ff5722';
@@ -241,16 +238,12 @@ function startVoiceInput() {
 
 function speak(text) {
     if ('speechSynthesis' in window) {
-        // सुनिश्चित करें कि पिछले वक्ता बंद हो जाएँ
         if (window.speechSynthesis.speaking) {
             window.speechSynthesis.cancel();
         }
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'hi-IN'; // हिंदी वॉयस
-        // आप यहाँ पिच या दर (rate) को एडजस्ट कर सकते हैं
-        // utterance.rate = 1.1; 
-        
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -309,8 +302,15 @@ async function send(queryText = null){
         if(chatBox.contains(loadEl)){
             chatBox.removeChild(loadEl);
         }
-        // वॉयस में एरर न बोलें, सिर्फ टेक्स्ट में दें
-        appendMessage("❌ कनेक्शन त्रुटि या AI समस्या: " + (err.message || 'Unknown error'), 'ai'); 
+        // यह सुनिश्चित करें कि Method Not Allowed या Failed to Fetch error भी दिखे
+        let displayError = err.message || 'Unknown error';
+        if (err.message.includes("405")) {
+             displayError = "Method Not Allowed (सर्वर पर पुराना कोड चल रहा है!)";
+        } else if (err.message.includes("Failed to fetch")) {
+             displayError = "Failed to fetch (सर्वर शायद क्रैश हो गया है!)";
+        }
+        
+        appendMessage("❌ कनेक्शन त्रुटि या AI समस्या: " + displayError, 'ai'); 
     } finally {
         setLoading(false);
     }
