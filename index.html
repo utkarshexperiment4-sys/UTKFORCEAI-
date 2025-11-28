@@ -40,6 +40,13 @@
         .header{padding:14px;text-align:center;color:#fff;border-bottom:1px solid rgba(255,255,255,0.06);border-top-left-radius:22px;border-top-right-radius:22px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12)); transform:translateZ(10px)}
         .title{font-weight:700;font-size:1.2rem;text-shadow:0 6px 18px rgba(0,212,255,0.12)}
         .subtitle{font-size:0.85rem;opacity:.85;margin-top:6px;padding:4px 10px;border-radius:14px;background:rgba(255,255,255,0.03);display:inline-block}
+        
+        /* New: Sign-in Button Placeholder */
+        #googleSignInBtn{
+            background: #fff; color: #4285f4; border: none; padding: 4px 8px; border-radius: 6px; 
+            font-size: 0.7rem; cursor: pointer; margin-left: 10px;
+        }
+
 
         /* Messages area (चैट एरिया) */
         .messages{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
@@ -110,7 +117,10 @@
     <div class="chat-card" role="application" aria-label="UtkForce Mobile Chat">
         <div class="header">
             <div class="title">UtkForceAI - Voice & Multi-Model</div>
-            <div class="subtitle">निर्माता: Utkarsh Maurya | <span id="modelStatus">Gemini (Active)</span></div>
+            <div class="subtitle">
+                निर्माता: Utkarsh Maurya | <span id="modelStatus">UTKFORCEAI (Active)</span>
+                <button id="googleSignInBtn">🔒 Google Sign-in (Add Later)</button>
+            </div>
         </div>
 
         <div class="messages" id="chatBox" role="log" aria-live="polite">
@@ -119,8 +129,17 @@
 
         <div class="input-area">
             <select id="modelSelector" class="model-select" aria-label="AI मॉडल चुनें">
-                <option value="gemini">UtkForceAI</option>
-                <option value="openai">ChatGPT</option>
+                <option value="UTKFORCEAI" selected>UTKFORCE AI (Gemini)</option> 
+                
+                <option value="openai">ChatGPT (क्रेडिट)</option>
+
+                <option disabled>--- OpenRouter (स्थायी मुफ़्त) ---</option>
+                
+                <option value="mistralai/mistral-7b-instruct">Mistral 7B Instruct</option>
+                <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B Instruct</option>
+                <option value="google/gemma-7b-it">Gemma 7B (Google OSS)</option>
+                <option value="perplexity/pplx-7b-chat">Perplexity 7B Chat</option>
+                <option value="qwen/qwen-1.5-7b-chat">Qwen 1.5 7B Chat</option>
             </select>
 
             <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." aria-label="प्रॉम्प्ट इनपुट" />
@@ -163,9 +182,12 @@ function setLoading(state){
     sendBtn.disabled = state;
     inputEl.disabled = state;
     micBtn.disabled = state;
+    modelSelector.disabled = state; // मॉडल सेलेक्टर को भी डिसेबल करें
+    
+    // UI अपडेट लॉजिक
     if(state){
-        micBtn.style.background = '#ccc';
-        micBtn.innerHTML = '<i class="material-icons">mic_off</i>';
+        // micBtn.style.background = '#ccc'; // माइक को म्यूट स्टाइल करें
+        // micBtn.innerHTML = '<i class="material-icons">mic_off</i>';
     } else {
         micBtn.style.background = '#ff5722';
         micBtn.innerHTML = '<i class="material-icons">mic</i>';
@@ -173,7 +195,7 @@ function setLoading(state){
 }
 
 // -----------------------------------------------------
-// 🎤 V O I C E   I N P U T   L O G I C
+// 🎤 V O I C E   I N P U T   L O G I C (सुधारित)
 // -----------------------------------------------------
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -186,10 +208,15 @@ if (SpeechRecognition) {
 }
 
 function startVoiceInput() {
-    if(loading) return;
+    if(loading) return; // लोडिंग के दौरान फिर से न शुरू करें
 
     if (currentRecognition) {
-        currentRecognition.stop();
+        currentRecognition.stop(); // पुराना रिकग्निशन रोकें
+    }
+    
+    // वॉयस आउटपुट को रोकें
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
     }
 
     const recognition = new SpeechRecognition();
@@ -202,21 +229,27 @@ function startVoiceInput() {
         setLoading(true);
         inputEl.placeholder = 'सुन रहा हूँ... कृपया बोलें...';
         micBtn.style.background = '#00ff44'; // माइक बटन को हरा करें
+        micBtn.innerHTML = '<i class="material-icons">settings_voice</i>'; // सुनने वाला आइकन
     };
 
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         inputEl.value = transcript;
-        micBtn.style.background = '#ff5722';
-        micBtn.innerHTML = '<i class="material-icons">mic</i>';
-        send(transcript); // सीधे API को भेजें
+        currentRecognition.stop(); // रिजल्ट मिलते ही रोकें
     };
 
     recognition.onend = () => {
-        if (!loading) {
+        const transcript = inputEl.value.trim(); // अंतिम ट्रांसक्रिप्ट
+        
+        if (transcript && transcript.length > 0) {
+             send(transcript); // यदि ट्रांसक्रिप्ट मिली है, तो API को भेजें
+        } else {
+             // यदि कोई ट्रांसक्रिप्ट नहीं मिली, तो केवल लोडिंग खत्म करें
+            setLoading(false);
             inputEl.placeholder = 'यहाँ लिखें...';
-            micBtn.style.background = '#ff5722';
+            appendMessage("❌ वॉयस इनपुट समझ नहीं आया।", 'ai');
         }
+        
         currentRecognition = null;
     };
 
@@ -224,8 +257,12 @@ function startVoiceInput() {
         setLoading(false);
         inputEl.placeholder = 'वॉयस त्रुटि। फिर से प्रयास करें।';
         micBtn.style.background = '#ff5722';
+        micBtn.innerHTML = '<i class="material-icons">mic</i>';
         console.error('Speech Recognition Error:', event.error);
-        appendMessage("❌ वॉयस इनपुट समझ नहीं आया।", 'ai');
+        if (event.error !== 'no-speech') {
+            appendMessage("❌ वॉयस इनपुट त्रुटि: " + event.error, 'ai');
+        }
+        currentRecognition = null;
     };
 
     recognition.start();
@@ -233,17 +270,20 @@ function startVoiceInput() {
 
 
 // -----------------------------------------------------
-// 🗣️ V O I C E   O U T P U T   L O G I C
+// 🗣️ V O I C E   O U T P U T   L O G I C (सुधारित)
 // -----------------------------------------------------
 
 function speak(text) {
     if ('speechSynthesis' in window) {
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
-        }
+        // सुनिश्चित करें कि कुछ भी बोलने से पहले पिछला बोलना रद्द हो जाए
+        window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'hi-IN'; // हिंदी वॉयस
+        // वैकल्पिक: गति और पिच सेट करें
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.0; 
+        
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -273,6 +313,7 @@ async function send(queryText = null){
         const payload = { 
             userQuery: text,
             modelChoice: selectedModel
+            // Image data and mimeType यहाँ से हटा दिए गए हैं क्योंकि यह कोड में नहीं है
         }; 
 
         const res = await fetch(API_ENDPOINT, {
@@ -336,7 +377,11 @@ inputEl.addEventListener('focus', ()=>{
         document.querySelector('.chat-card').scrollIntoView({behavior:'smooth', block:'center'});
     }, 200);
 });
+
+// Placeholder for future Google Sign-in logic
+document.getElementById('googleSignInBtn').addEventListener('click', () => {
+    alert("Google Sign-in/Auth लॉजिक यहाँ जोड़ा जाएगा। यह अभी केवल Placeholder है!");
+});
 </script>
 </body>
 </html>
-
