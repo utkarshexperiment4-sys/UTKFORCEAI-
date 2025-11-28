@@ -142,8 +142,11 @@ async def generate_response_api(request: ChatRequest):
             # OpenRouter के लिए, यदि चित्र है, तो इसे अनदेखा करें क्योंकि यह मुफ़्त मॉडलों पर अच्छी तरह से समर्थित नहीं हो सकता है, 
             # या इसे OpenAI के विज़न फॉर्मेट में बदलना होगा। यहाँ सरलता के लिए, हम इसे केवल टेक्स्ट के रूप में भेजते हैं।
             
-            messages = [{"role": "system", "content": system_prompt}]
-            messages.append({"role": "user", "content": request.userQuery})
+                  formatted_prompt = (
+                f"{system_prompt}\n\nउपयोगकर्ता प्रश्न: {request.userQuery}"
+            )
+            messages = [{"role": "user", "content": formatted_prompt}]
+
             
             completion = openrouter_client.chat.completions.create(
                 model=request.modelChoice,
