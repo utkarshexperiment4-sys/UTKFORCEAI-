@@ -1,7 +1,5 @@
 fastapi
 uvicorn
-google-genai
 pydantic
+openai
 python-multipart
-openai # OpenRouter और OpenAI दोनों के लिए आवश्यक
-chromadb
