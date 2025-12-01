@@ -27,24 +27,10 @@ app.add_middleware(
 # Environment Variables से Keys प्राप्त करें
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
-# *****************************************************************
-# * नया: OpenRouter Key को लोड करें *
-# *****************************************************************
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
 # Clients
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
-# *****************************************************************
-# * नया: OpenRouter क्लाइंट (बेस URL सेट करना आवश्यक है) *
-# *****************************************************************
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-openrouter_client = OpenAI(
-    api_key=OPENROUTER_API_KEY, 
-    base_url=OPENROUTER_BASE_URL
-) if OPENROUTER_API_KEY else None
-
 
 # RAG सेटअप: ChromaDB (पर्सनल नॉलेज)
 CHROMA_CLIENT = chromadb.Client() 
@@ -67,35 +53,21 @@ except Exception as e:
     print(f"ChromaDB सेटअप में त्रुटि: {e}")
     RAG_COLLECTION = None
 
-# --- 2. Request Schema (चित्र इनपुट के लिए विज़न को बरकरार रखा गया है) ---
+# --- 2. Request Schema ---
 class ChatRequest(BaseModel):
     userQuery: str
     base64Image: str | None = None
     mimeType: str | None = None
-    modelChoice: str = "UTKFORCEAI" # डिफ़ॉल्ट मॉडल को ब्रांडेड नाम दिया गया
+    modelChoice: str = "gemini" 
 
 # --- 3. API Endpoint (POST विधि) ---
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
 
-    # Key जाँच (सिर्फ़ उन मॉडलों के लिए जिनकी Key उपलब्ध नहीं है)
-    if request.modelChoice in ["UTKFORCEAI", "gemini"] and not gemini_client:
-        raise HTTPException(status_code=500, detail="UTKFORCEAI (Gemini) API_KEY नहीं मिला।")
+    if request.modelChoice == "gemini" and not gemini_client:
+        raise HTTPException(status_code=500, detail="Gemini API_KEY नहीं मिला।")
     if request.modelChoice == "openai" and not openai_client:
         raise HTTPException(status_code=500, detail="OpenAI API_KEY नहीं मिला।")
-    
-    # OpenRouter मुफ़्त मॉडलों की सूची
-    FREE_OPENROUTER_MODELS = [
-        "mistralai/mistral-7b-instruct",
-        "meta-llama/llama-3-8b-instruct",
-        "google/gemma-7b-it",
-        "perplexity/pplx-7b-chat",
-        "qwen/qwen-1.5-7b-chat"
-    ]
-    # OpenRouter Key जाँच
-    if request.modelChoice in FREE_OPENROUTER_MODELS and not openrouter_client:
-        raise HTTPException(status_code=500, detail="OpenRouter API_KEY नहीं मिला। मुफ़्त मॉडल्स अनुपलब्ध हैं।")
-
 
     # --- RAG Retrieval ---
     context_text = ""
@@ -114,8 +86,7 @@ async def generate_response_api(request: ChatRequest):
 
     # --- मल्टी-मॉडल लॉजिक ---
     try:
-        # 1. UTKFORCEAI (Gemini) लॉजिक - ब्रांडेड नाम शामिल है
-        if request.modelChoice in ["UTKFORCEAI", "gemini"]:
+        if request.modelChoice == "gemini":
             parts = []
             
             # Gemini: चित्र भाग (विज़न)
@@ -136,27 +107,6 @@ async def generate_response_api(request: ChatRequest):
             )
             return {"response": response.text}
 
-        # 2. OpenRouter मुफ़्त मॉडल्स लॉजिक
-        elif request.modelChoice in FREE_OPENROUTER_MODELS:
-            # OpenRouter चित्र इनपुट (विज़न) को अलग तरह से संभालता है। 
-            # OpenRouter के लिए, यदि चित्र है, तो इसे अनदेखा करें क्योंकि यह मुफ़्त मॉडलों पर अच्छी तरह से समर्थित नहीं हो सकता है, 
-            # या इसे OpenAI के विज़न फॉर्मेट में बदलना होगा। यहाँ सरलता के लिए, हम इसे केवल टेक्स्ट के रूप में भेजते हैं।
-            
-                  formatted_prompt = (
-                f"{system_prompt}\n\nउपयोगकर्ता प्रश्न: {request.userQuery}"
-            )
-            messages = [{"role": "user", "content": formatted_prompt}]
-
-            
-            completion = openrouter_client.chat.completions.create(
-                model=request.modelChoice,
-                messages=messages,
-                temperature=0.7
-            )
-            return {"response": completion.choices[0].message.content}
-
-
-        # 3. OpenAI लॉजिक
         elif request.modelChoice == "openai":
             messages = [{"role": "system", "content": system_prompt}]
             
