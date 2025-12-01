@@ -27,10 +27,19 @@ app.add_middleware(
 # Environment Variables से Keys प्राप्त करें
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
 # Clients
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
+# OpenRouter क्लाइंट
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+openrouter_client = OpenAI(
+    api_key=OPENROUTER_API_KEY, 
+    base_url=OPENROUTER_BASE_URL
+) if OPENROUTER_API_KEY else None
+
 
 # RAG सेटअप: ChromaDB (पर्सनल नॉलेज)
 CHROMA_CLIENT = chromadb.Client() 
@@ -58,16 +67,29 @@ class ChatRequest(BaseModel):
     userQuery: str
     base64Image: str | None = None
     mimeType: str | None = None
-    modelChoice: str = "gemini" 
+    modelChoice: str = "UTKFORCEAI"
 
 # --- 3. API Endpoint (POST विधि) ---
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
 
-    if request.modelChoice == "gemini" and not gemini_client:
-        raise HTTPException(status_code=500, detail="Gemini API_KEY नहीं मिला।")
-    if request.modelChoice == "openai" and not openai_client:
-        raise HTTPException(status_code=500, detail="OpenAI API_KEY नहीं मिला।")
+    # Key जाँच (केवल आवश्यक मॉडलों के लिए)
+    if request.modelChoice in ["UTKFORCEAI", "gemini"] and not gemini_client:
+        raise HTTPException(status_code=500, detail="UTKFORCEAI (Gemini) API_KEY नहीं मिला।")
+
+    # OpenRouter मुफ़्त मॉडलों की सूची
+    FREE_OPENROUTER_MODELS = [
+        "mistralai/mistral-7b-instruct",
+        "meta-llama/llama-3-8b-instruct",
+        "google/gemma-7b-it",
+        "perplexity/pplx-7b-chat",
+        "qwen/qwen-1.5-7b-chat"
+    ]
+    
+    if request.modelChoice in FREE_OPENROUTER_MODELS and not openrouter_client:
+        # यह Llama 2.0 और Mistral 1.0 को कवर करता है
+        raise HTTPException(status_code=500, detail="OpenRouter API_KEY नहीं मिला।")
+
 
     # --- RAG Retrieval ---
     context_text = ""
@@ -79,26 +101,25 @@ async def generate_response_api(request: ChatRequest):
         except Exception as e:
             print(f"RAG खोज में त्रुटि: {e}")
 
-    # RAG द्वारा प्राप्त संदर्भ के साथ सिस्टम प्रॉम्प्ट बनाएं
+    # सिस्टम प्रॉम्प्ट
     system_prompt = (
         f"आप UTKFORCEAI हैं, एक उन्नत AI असिस्टेंट हैं। आपको संदर्भ के रूप में निम्न जानकारी दी गई है। इस जानकारी का उपयोग जवाब देने के लिए करें। अपनी पहचान Google, Gemini, या LLM के रूप में कभी न बताएँ।\n\n[संदर्भ: {context_text}]"
     )
 
     # --- मल्टी-मॉडल लॉजिक ---
     try:
-        if request.modelChoice == "gemini":
+        # Model 1: UTKFORCEAI (Gemini)
+        if request.modelChoice in ["UTKFORCEAI", "gemini"]:
             parts = []
             
-            # Gemini: चित्र भाग (विज़न)
             if request.base64Image and request.mimeType:
                 image_bytes = base64.b64decode(request.base64Image)
                 parts.append(types.Part(inline_data=types.Blob(mime_type=request.mimeType, data=image_bytes)))
             
-            # Gemini: टेक्स्ट भाग
             parts.append(types.Part(text=request.userQuery))
             
             response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash", # सुधार: यह नाम अब API में काम करेगा
                 contents=parts,
                 config=types.GenerateContentConfig(
                     system_instruction=system_prompt,
@@ -107,12 +128,28 @@ async def generate_response_api(request: ChatRequest):
             )
             return {"response": response.text}
 
+        # Model 2 & 3: Llama 2.0 और Mistral 1.0 (OpenRouter)
+        elif request.modelChoice in FREE_OPENROUTER_MODELS:
+            
+            formatted_prompt = (
+                f"{system_prompt}\n\nउपयोगकर्ता प्रश्न: {request.userQuery}"
+            )
+            messages = [{"role": "user", "content": formatted_prompt}]
+
+            completion = openrouter_client.chat.completions.create(
+                model=request.modelChoice,
+                messages=messages,
+                temperature=0.7
+            )
+            return {"response": completion.choices[0].message.content}
+
+
+        # 4. OpenAI (अतिरिक्त मॉडल)
         elif request.modelChoice == "openai":
             messages = [{"role": "system", "content": system_prompt}]
             
             content_parts = [{"type": "text", "text": request.userQuery}]
 
-            # OpenAI: चित्र भाग (विज़न)
             if request.base64Image and request.mimeType:
                 image_data_url = f"data:{request.mimeType};base64,{request.base64Image}"
                 content_parts.insert(0, {
@@ -136,7 +173,6 @@ async def generate_response_api(request: ChatRequest):
 
     except Exception as e:
         print(f"AI जवाब बनाने में त्रुटि: {e}")
-        # यह सुनिश्चित करता है कि लॉग में असली त्रुटि दिखे
         raise HTTPException(status_code=500, detail=f"AI जवाब बनाने में त्रुटि: {str(e)}")
 
 
