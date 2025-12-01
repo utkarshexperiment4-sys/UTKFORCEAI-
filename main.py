@@ -26,15 +26,14 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
-# --- GEMINI SETUP (FIXED FOR 100% STABILITY) ---
+# --- GEMINI SETUP (LOWEST COST/FASTEST MODEL FIX) ---
 gemini_model = None
 if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         
-        # 💥 100% FIX: 'gemini-1.5-flash' ke badle 'gemini-pro' ya 'gemini-2.5-flash'
-        # 'gemini-pro' sabse stable hai aur 404 error nahi dega.
-        # Agar aapko naya model chahiye toh 'gemini-2.5-flash' use karein.
+        # 💥 FINAL FIX: Sabse tej aur sasta model 'gemini-2.5-flash' use kiya gaya hai.
+        # Yeh 'gemini-1.5-flash' ka naya naam hai.
         gemini_model = genai.GenerativeModel('gemini-2.5-flash') 
         print("✅ Gemini Model Connected Successfully.")
     except Exception as e:
@@ -50,8 +49,7 @@ openrouter_client = OpenAI(
 ) if OPENROUTER_API_KEY else None
 
 
-# --- RAG सेटअप: ChromaDB (Robust setup) ---
-# ChromaDB ko memory mein chalaya ja raha hai taaki disk corruption na ho (Render/Codespaces ke liye better)
+# --- RAG सेटअप: ChromaDB ---
 CHROMA_CLIENT = chromadb.Client() 
 COLLECTION_NAME = "utkarsh_personal_knowledge"
 RAG_COLLECTION = None
@@ -59,7 +57,6 @@ RAG_COLLECTION = None
 try:
     RAG_COLLECTION = CHROMA_CLIENT.get_or_create_collection(COLLECTION_NAME)
     
-    # Check if data exists to avoid duplicates
     if RAG_COLLECTION.count() == 0:
         docs = [
             "इस AI असिस्टेंट का नाम UTKFORCEAI है, और यह उत्कर्ष मौर्य द्वारा बनाया गया एक उन्नत AI है।",
@@ -85,7 +82,7 @@ class ChatRequest(BaseModel):
 @app.post("/api/generate")
 async def generate_response_api(request: ChatRequest):
 
-    # 1. OpenRouter Models List
+    # OpenRouter ke liye wahi models list
     FREE_OPENROUTER_MODELS = [
         "mistralai/mistral-7b-instruct",
         "meta-llama/llama-3-8b-instruct",
@@ -103,7 +100,6 @@ async def generate_response_api(request: ChatRequest):
                 docs_list = results['documents'][0]
                 context_text = "\n".join(docs_list)
         except Exception as e:
-            # Agar RAG query fail ho toh sirf console mein print karein
             print(f"RAG खोज में त्रुटि: {e}")
 
     # सिस्टम प्रॉम्प्ट
@@ -113,7 +109,7 @@ async def generate_response_api(request: ChatRequest):
 
     try:
         # -------------------------------------------------
-        # Model 1: UTKFORCEAI (Gemini Stable SDK)
+        # Model 1: UTKFORCEAI (Gemini 2.5 Flash)
         # -------------------------------------------------
         if request.modelChoice in ["UTKFORCEAI", "gemini"]:
             if not gemini_model:
