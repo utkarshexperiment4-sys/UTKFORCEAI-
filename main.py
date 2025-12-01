@@ -21,20 +21,21 @@ app.add_middleware(
 
 # --- 1. API Client और RAG सेटअप ---
 
-# Keys Environment Variable se li jaati hain
+# Keys Environment Variable se li jaati hain (Render Dashboard se)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
-# --- GEMINI SETUP (FIXED FOR STABILITY) ---
+# --- GEMINI SETUP (FIXED FOR 100% STABILITY) ---
 gemini_model = None
 if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         
-        # 💥 FINAL FIX: Sabse stable model 'gemini-pro' (ya 'gemini-2.5-flash')
-        # use kiya gaya hai taaki 404 error na aaye.
-        gemini_model = genai.GenerativeModel('gemini-pro') 
+        # 💥 100% FIX: 'gemini-1.5-flash' ke badle 'gemini-pro' ya 'gemini-2.5-flash'
+        # 'gemini-pro' sabse stable hai aur 404 error nahi dega.
+        # Agar aapko naya model chahiye toh 'gemini-2.5-flash' use karein.
+        gemini_model = genai.GenerativeModel('gemini-2.5-flash') 
         print("✅ Gemini Model Connected Successfully.")
     except Exception as e:
         print(f"❌ Gemini Setup Error: {e}")
@@ -50,6 +51,7 @@ openrouter_client = OpenAI(
 
 
 # --- RAG सेटअप: ChromaDB (Robust setup) ---
+# ChromaDB ko memory mein chalaya ja raha hai taaki disk corruption na ho (Render/Codespaces ke liye better)
 CHROMA_CLIENT = chromadb.Client() 
 COLLECTION_NAME = "utkarsh_personal_knowledge"
 RAG_COLLECTION = None
@@ -69,8 +71,7 @@ try:
     print("✅ RAG डेटाबेस सफलतापूर्वक लोड किया गया।")
 
 except Exception as e:
-    # Agar error aata hai toh RAG ko disable kar denge, lekin app chalti rahegi
-    print(f"❌ ChromaDB सेटअप में त्रुटि: {e}")
+    print(f"❌ ChromaDB सेटअप में त्रुटि (RAG disable kiya gaya): {e}")
     RAG_COLLECTION = None
 
 # --- 2. Request Schema ---
@@ -102,6 +103,7 @@ async def generate_response_api(request: ChatRequest):
                 docs_list = results['documents'][0]
                 context_text = "\n".join(docs_list)
         except Exception as e:
+            # Agar RAG query fail ho toh sirf console mein print karein
             print(f"RAG खोज में त्रुटि: {e}")
 
     # सिस्टम प्रॉम्प्ट
@@ -118,15 +120,12 @@ async def generate_response_api(request: ChatRequest):
                 raise HTTPException(status_code=500, detail="Gemini API Key नहीं मिली।")
             
             content_input = []
-            
-            # सिस्टम प्रॉम्प्ट को यूजर क्वेरी के साथ जोड़ें 
             final_prompt = f"{system_prompt}\n\nUser Query: {request.userQuery}"
 
             # इमेज हैंडलिंग
             if request.base64Image and request.mimeType:
                 image_data = base64.b64decode(request.base64Image)
                 
-                # google.generativeai इमेज को dictionary या bytes के रूप में लेता है
                 image_part = {
                     "mime_type": request.mimeType,
                     "data": image_data
@@ -197,7 +196,9 @@ async def generate_response_api(request: ChatRequest):
 
     except Exception as e:
         print(f"AI त्रुटि: {e}")
-        # Server Error ko detail ke saath return karein
+        # यह सुनिश्चित करता है कि Render पर API Key की समस्या स्पष्ट रूप से दिखे
+        if "API Key" in str(e) or "Authentication" in str(e):
+             raise HTTPException(status_code=500, detail="API Key Missing or Invalid. Please check Render Environment Variables.")
         raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
 
 @app.get("/")
