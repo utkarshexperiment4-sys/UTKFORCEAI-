@@ -39,15 +39,7 @@
         /* Header */
         .header{padding:14px;text-align:center;color:#fff;border-bottom:1px solid rgba(255,255,255,0.06);border-top-left-radius:22px;border-top-right-radius:22px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12)); transform:translateZ(10px)}
         .title{font-weight:700;font-size:1.2rem;text-shadow:0 6px 18px rgba(0,212,255,0.12)}
-        /* टाइटल में "Multi-Model" हटाया गया */
         .subtitle{font-size:0.85rem;opacity:.85;margin-top:6px;padding:4px 10px;border-radius:14px;background:rgba(255,255,255,0.03);display:inline-block}
-        
-        /* New: Sign-in Button Placeholder */
-        #googleSignInBtn{
-            background: #fff; color: #4285f4; border: none; padding: 4px 8px; border-radius: 6px; 
-            font-size: 0.7rem; cursor: pointer; margin-left: 10px;
-        }
-
 
         /* Messages area (चैट एरिया) */
         .messages{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
@@ -69,17 +61,16 @@
             flex-wrap: nowrap; 
         }
 
-        /* मॉडल सेलेक्टर (और छोटा किया गया) */
+        /* मॉडल सेलेक्टर (छोटा किया गया) */
         .model-select{
-            padding:6px 2px; /* पैडिंग कम की गई */
+            padding:10px 4px; 
             border-radius:12px;
             border:1px solid #00d4ff;
-            font-size: 0.7rem; /* फॉन्ट साइज़ और कम किया गया */
+            font-size: 0.75rem; 
             white-space: nowrap;
-            min-width: 65px; /* मिनिमम चौड़ाई थोड़ी कम की गई */
+            min-width: 70px; 
             background: rgba(255,255,255,0.95);
             appearance: none; 
-            text-align: center;
         }
 
         .txt-box{
@@ -118,11 +109,8 @@
 
     <div class="chat-card" role="application" aria-label="UtkForce Mobile Chat">
         <div class="header">
-            <div class="title">UtkForceAI + Voice Assistant</div>
-            <div class="subtitle">
-                निर्माता: Utkarsh Maurya | <span id="modelStatus">UTKFORCE AI (Active)</span>
-                <button id="googleSignInBtn">🔒 Google Sign-in (Add Later)</button>
-            </div>
+            <div class="title">UtkForceAI - Voice & Multi-Model</div>
+            <div class="subtitle">निर्माता: Utkarsh Maurya | <span id="modelStatus">Gemini (Active)</span></div>
         </div>
 
         <div class="messages" id="chatBox" role="log" aria-live="polite">
@@ -131,9 +119,8 @@
 
         <div class="input-area">
             <select id="modelSelector" class="model-select" aria-label="AI मॉडल चुनें">
-                <option value="UTKFORCEAI" selected>UTKFORCE AI 3.0 </option> 
-                <option value="meta-llama/llama-3-8b-instruct">Llama 2.0</option>
-                <option value="mistralai/mistral-7b-instruct">Mistral 1.0</option>
+                <option value="gemini">Gemini</option>
+                <option value="openai">ChatGPT</option>
             </select>
 
             <input id="userInput" class="txt-box" placeholder="यहाँ लिखें..." aria-label="प्रॉम्प्ट इनपुट" />
@@ -176,11 +163,9 @@ function setLoading(state){
     sendBtn.disabled = state;
     inputEl.disabled = state;
     micBtn.disabled = state;
-    modelSelector.disabled = state; 
-    
-    // UI अपडेट लॉजिक
     if(state){
-        // जब लोडिंग हो तो माइक बटन के रंग और आइकन को बदलने की ज़रूरत नहीं है
+        micBtn.style.background = '#ccc';
+        micBtn.innerHTML = '<i class="material-icons">mic_off</i>';
     } else {
         micBtn.style.background = '#ff5722';
         micBtn.innerHTML = '<i class="material-icons">mic</i>';
@@ -188,7 +173,7 @@ function setLoading(state){
 }
 
 // -----------------------------------------------------
-// 🎤 V O I C E   I N P U T   L O G I C (फिक्स किया गया)
+// 🎤 V O I C E   I N P U T   L O G I C
 // -----------------------------------------------------
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -201,14 +186,10 @@ if (SpeechRecognition) {
 }
 
 function startVoiceInput() {
-    if(loading) return; 
+    if(loading) return;
 
     if (currentRecognition) {
-        currentRecognition.stop(); 
-    }
-    
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
+        currentRecognition.stop();
     }
 
     const recognition = new SpeechRecognition();
@@ -218,30 +199,24 @@ function startVoiceInput() {
     currentRecognition = recognition;
 
     recognition.onstart = () => {
-        setLoading(true); // लोडिंग शुरू करें (इससे बटन डिसेबल हो जाएंगे)
+        setLoading(true);
         inputEl.placeholder = 'सुन रहा हूँ... कृपया बोलें...';
-        micBtn.style.background = '#00ff44'; 
-        micBtn.innerHTML = '<i class="material-icons">settings_voice</i>'; 
+        micBtn.style.background = '#00ff44'; // माइक बटन को हरा करें
     };
 
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         inputEl.value = transcript;
-        currentRecognition.stop(); 
+        micBtn.style.background = '#ff5722';
+        micBtn.innerHTML = '<i class="material-icons">mic</i>';
+        send(transcript); // सीधे API को भेजें
     };
 
     recognition.onend = () => {
-        const transcript = inputEl.value.trim(); 
-        
-        if (transcript && transcript.length > 0) {
-             send(transcript); // यदि ट्रांसक्रिप्ट मिली है, तो API को भेजें
-        } else {
-            // कोई स्पीच नहीं मिली
-            setLoading(false);
+        if (!loading) {
             inputEl.placeholder = 'यहाँ लिखें...';
-            // यह संदेश हटाएं क्योंकि 'no-speech' error पहले ही लॉग हो जाता है।
+            micBtn.style.background = '#ff5722';
         }
-        
         currentRecognition = null;
     };
 
@@ -249,34 +224,26 @@ function startVoiceInput() {
         setLoading(false);
         inputEl.placeholder = 'वॉयस त्रुटि। फिर से प्रयास करें।';
         micBtn.style.background = '#ff5722';
-        micBtn.innerHTML = '<i class="material-icons">mic</i>';
         console.error('Speech Recognition Error:', event.error);
-        
-        // केवल तभी त्रुटि संदेश दिखाएँ जब यह 'no-speech' न हो
-        if (event.error !== 'no-speech') {
-            appendMessage("❌ वॉयस इनपुट त्रुटि।", 'ai');
-        }
-        currentRecognition = null;
+        appendMessage("❌ वॉयस इनपुट समझ नहीं आया।", 'ai');
     };
 
-    // यहां से रिकग्निशन शुरू करें
     recognition.start();
 }
 
 
 // -----------------------------------------------------
-// 🗣️ V O I C E   O U T P U T   L O G I C (फिक्स किया गया)
+// 🗣️ V O I C E   O U T P U T   L O G I C
 // -----------------------------------------------------
 
 function speak(text) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'hi-IN'; // हिंदी वॉयस
-        utterance.rate = 1.0; 
-        utterance.pitch = 1.0; 
-        
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -335,7 +302,7 @@ async function send(queryText = null){
         if(chatBox.contains(loadEl)){
             chatBox.removeChild(loadEl);
         }
-        
+        // यह सुनिश्चित करें कि Method Not Allowed या Failed to Fetch error भी दिखे
         let displayError = err.message || 'Unknown error';
         if (err.message.includes("405")) {
              displayError = "Method Not Allowed (सर्वर पर पुराना कोड चल रहा है!)";
@@ -360,9 +327,7 @@ inputEl.addEventListener('keydown', (e)=>{
 });
 
 modelSelector.addEventListener('change', (e) => {
-    // Header में 'Gemini' नाम हटाया गया
-    const selectedText = e.target.options[e.target.selectedIndex].text;
-    modelStatusEl.textContent = `${selectedText.replace(' (Gemini)', '').trim()} (Active)`;
+    modelStatusEl.textContent = `${e.target.options[e.target.selectedIndex].text} (Active)`;
 });
 
 // Initial setup scroll and focus
@@ -371,11 +336,6 @@ inputEl.addEventListener('focus', ()=>{
         document.querySelector('.chat-card').scrollIntoView({behavior:'smooth', block:'center'});
     }, 200);
 });
-
-// Placeholder for future Google Sign-in logic
-document.getElementById('googleSignInBtn').addEventListener('click', () => {
-    alert("Google Sign-in/Auth लॉजिक यहाँ जोड़ा जाएगा। यह अभी केवल Placeholder है!");
-});
 </script>
 </body>
-    </html>
+</html>
