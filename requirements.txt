@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-google-genai>=0.2.0
+google-generativeai
 pydantic
 python-multipart
 openai 
