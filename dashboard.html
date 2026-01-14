@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
+    <script>
+    // यह चेक करेगा कि क्या यूजर लॉगिन पेज से होकर आया है
+    // अगर कोई सीधा लिंक कॉपी करके आएगा, तो उसे वापस index.html पर भेज देगा
+    if (sessionStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "index.html";
+    }
+</script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>UtkForce AI</title>
