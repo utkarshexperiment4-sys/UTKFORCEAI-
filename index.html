@@ -8,7 +8,6 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
-        /* पूरे पेज का लेआउट और बैकग्राउंड */
         body {
             margin: 0;
             padding: 0;
@@ -16,20 +15,18 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #ffffff; /* बैकग्राउंड को सफेद रखा गया है */
+            background-color: #ffffff;
             font-family: 'Roboto', arial, sans-serif;
         }
 
-        /* लॉगिन बॉक्स का डिजाइन (Realistic Card) */
         .login-card {
             width: 380px;
             padding: 40px;
-            border: 1px solid #dadce0; /* हल्का ग्रे बॉर्डर जैसा गूगल इस्तेमाल करता है */
+            border: 1px solid #dadce0;
             border-radius: 8px;
             text-align: center;
         }
 
-        /* गूगल का रंगीन लोगो */
         .google-logo {
             width: 75px;
             margin-bottom: 10px;
@@ -48,7 +45,6 @@
             margin-bottom: 30px;
         }
 
-        /* लॉगिन बटन को बीच में रखने के लिए */
         .button-wrapper {
             display: flex;
             justify-content: center;
@@ -62,7 +58,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" class="google-logo">
         
         <h1>साइन इन करें</h1>
-        <p>जारी रखने के लिए अपने Google खाते का उपयोग करें</p>
+        <p>UTKFORCE AI में जारी रखने के लिए</p>
 
         <div class="button-wrapper">
             <div id="g_id_onload"
@@ -81,15 +77,18 @@
                  data-size="large"
                  data-logo_alignment="left">
             </div>
-            </div>
+        </div>
     </div>
 
     <script>
-        // लॉगिन सफल होने के बाद क्या होगा
         function onSuccess(response) {
             console.log("सफलतापूर्वक लॉगिन हो गया है!");
-            // यह लाइन यूजर को आपके डैशबोर्ड पेज पर भेज देगी
-            // सुनिश्चित करें कि आपकी दूसरी फाइल का नाम dashboard.html ही हो
+            
+            // सुरक्षा के लिए 'isLoggedIn' सेट करना (बहुत जरूरी)
+            // इससे ब्राउज़र को पता चलेगा कि यूजर लॉगिन कर चुका है
+            sessionStorage.setItem("isLoggedIn", "true");
+
+            // अब यूजर को डैशबोर्ड पर भेजें
             window.location.href = "dashboard.html";
         }
     </script>
